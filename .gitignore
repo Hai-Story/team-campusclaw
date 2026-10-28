@@ -1,0 +1,27 @@
+# 本机配置与机密
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+coverage/
+*.test
+# 运行数据与报告
+uploads/
+data/
+volumes/
+apitest/reports/
+output/
+tmp/
+*.log
+# 系统与编辑器
+.DS_Store
+.idea/
+.vscode/
+*.swp
+# 本地 Harness 记录
+.codex-log/
