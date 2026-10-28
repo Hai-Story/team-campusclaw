@@ -3,7 +3,7 @@
 - [x] 1.1 建立README、.gitignore、仅键名.env.example和目录职责，保留LICENSE与个人来源；verify：逐文件核对K1/K5，git check-ignore验证本机配置和产物被排除，检查当前文件仅文档/指令/规划配置。
 - [x] 1.2 建立AGENTS加载入口、8类规则、OpenSpec工作流与7个项目技能、团队与选题说明；verify：加载矩阵对应规则文件全部可读，SKILL.md前置信息验证通过，PDF七项候选和三人分工对应。
 - [x] 1.3 完成运行底座四件套与R1-R5/S1-S12映射，首轮业务迭代待小组确定；verify：openspec validate 2026-10-28-team-project-kickoff --strict退出0，能力与场景两列表完整，四类失败有具体结果。
-- [ ] 1.4 完成课程链接、文档路径、机密历史与diff检查并记录真实结果，发布启动文档到小组GitHub；verify：docs/lesson-07/verification.md包含命令与退出码，15个子页面读到正文，GitHub默认分支可读完整文件树。
+- [x] 1.4 完成课程链接、文档路径、机密历史与diff检查并记录真实结果，发布启动文档到小组GitHub；verify：docs/lesson-07/verification.md包含命令与退出码，15个子页面读到正文，GitHub默认分支可读完整文件树。
 
 ## 2. 组内确认与业务编码前置（待成员执行）
 

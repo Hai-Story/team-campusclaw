@@ -41,4 +41,12 @@ check-results.json保留上述检查的数据结果。机密检查是所列模�
 
 ## 发布核对
 
-待记录。GitHub回读成功后记入实际提交与文件树对比结果。
+已发布到main，并通过连接器读取默认分支README正文、GitHub完整递归文件树及Git对象回读核对：
+
+- 文档内容提交：3814bcd49bea80b2cf02a4286181172ba12c0fdf。
+- 内容树：49425d53d002e7e000b0df2ac902c9e0adbdba3c，53个文件（含原LICENSE），truncated=false。
+- 本地git write-tree与origin/main^{tree}完全一致，git diff --cached origin/main --exit-code退出0；默认分支README逐字与准备内容一致。
+- 两个提交分别建立README/.gitignore与完整材料，原始a5dc6cb初始提交及LICENSE保留，没有重写历史。
+- 本记录随后作为单独文档提交补回；任务1.1至1.4为已执行的文档任务，管理与运行阶段任务继续未勾选。
+
+本地小组目录为独立clone，个人项目目录保留原有README未提交修改。
