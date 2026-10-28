@@ -1,4 +1,4 @@
-# 本课验证记录
+# 第7课验证记录
 
 日期：2026-10-28（Asia/Shanghai）。范围：启动文档、指令文件、规约与目录说明；业务源码和运行行为属于后续任务。
 
@@ -6,14 +6,14 @@
 
 | 检查 | 方法/命令 | 结果与范围 |
 | --- | --- | --- |
-| 个人聊天与来源 | read_thread读取“互联网软件开发（个人任务）”，核对本地来源提交、README、配置和入口 | 固定e5ffbb1677dfad4f5347a4023dc88a5b607c429a，GitHub提交API也确认该对象存在；只作源码事实核对 |
+| 现有平台能力 | 核对平台接口、页面、配置及课程教学进度 | 已整理认证与班级隔离、资料管理、知识检索、技能与流式会话、MCP工具能力；本次只作功能与契约说明核对 |
 | 选题说明 | 提取3页正文并逐页查看PDF渲染 | 七项扩展、技术方案、三人分工已核对 |
 | 课程页面 | Chrome原生页面及HTTP正文/最终网址核对 | references列出的主页面与15个子页面均有正文，非只看标题 |
 | OpenSpec初始化 | openspec init --tools codex --language zh-CN | 退出0，生成6个Codex工作流技能；附带跳过Copilot选项不影响结果 |
 | 根目录 | openspec context --json | 退出0，解析为小组仓库，无全局store误指向 |
 | 规约形式 | openspec validate 2026-10-28-team-project-kickoff --strict | 退出0，Change is valid |
 | 四件套状态 | openspec status --change 2026-10-28-team-project-kickoff | 退出0，4/4 artifacts complete；只代表规划完整 |
-| 仓库权限 | GitHub get_repo / authenticated user | MrKen20可push，admin/maintain=false |
+| 仓库权限 | GitHub get_repo / authenticated user | 当前连接可push，admin/maintain=false |
 | 主干与规则集 | GET branches/main、GET rulesets | protected=false，protection.enabled=false，rulesets=[]；所有者待设置 |
 | 管理详情访问 | GET branches/main/protection | 403 Resource not accessible by integration；没有宣称已修改设置 |
 
@@ -37,7 +37,7 @@ check-results.json保留上述检查的数据结果。机密检查是所列模�
 
 ## 尚待执行的验收
 
-代码行为S1-S12、统一make check、真实模型/工具评测、新会话生成代码、违规注入、组员人审、异机启动、回滚及运行标签均未在本次文档任务中执行。任务勾选保留在对应阶段，没有把个人历史报告搬成小组新验证。
+代码行为S1-S12、统一make check、真实模型/工具评测、新会话生成代码、违规注入、组员人审、异机启动、回滚及运行标签均未在本次文档任务中执行。任务勾选保留在对应阶段，既有验证记录不计为新增运行任务的验收结果。
 
 ## 发布核对
 
@@ -49,4 +49,19 @@ check-results.json保留上述检查的数据结果。机密检查是所列模�
 - 两个提交分别建立README/.gitignore与完整材料，原始a5dc6cb初始提交及LICENSE保留，没有重写历史。
 - 本记录随后作为单独文档提交补回；任务1.1至1.4为已执行的文档任务，管理与运行阶段任务继续未勾选。
 
-本地小组目录为独立clone，个人项目目录保留原有README未提交修改。
+本地小组目录与小组仓库同步，修改范围为文档和指令文件。
+
+## 文档表述调整
+
+按小组要求统一项目说明：在现有平台上增量开发，对 CampusClaw 中小学教研智能体进行功能扩展；已有功能按能力描述，选题文件统一称“小组项目选题说明”，当前课程任务统一称“第7课”。平台概况页集中说明现有功能与技术约定，文档链接已同步。
+
+此次仅调整文档和指令文件的表述；运行底座的Requirement、Scenario及任务完成状态保持原意。文档一致性、内部链接、严格校验与技能格式在提交前重新检查，记录如下。
+
+| 检查 | 结果 |
+| --- | --- |
+| 全仓文档一致性 | 53个文件检查通过，项目定位、选题文件名称与课次称呼符合约定 |
+| 内部链接 | 21个相对Markdown链接可解析，概况页路径与所有引用已同步 |
+| 运行规约一致性 | R1-R5及S1-S12正文逐字不变，任务完成状态不变 |
+| 严格校验 | openspec validate 2026-10-28-team-project-kickoff --strict，退出0 |
+| 技能格式 | 两份修改过的SKILL.md均通过quick_validate.py，退出0 |
+| diff检查 | git diff --cached --check，退出0；变更仅涉及说明、规则、技能与OpenSpec规划文件 |

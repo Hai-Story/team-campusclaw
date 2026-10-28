@@ -1,6 +1,6 @@
 # 后端开发规则
 
-适用于 backend/、接口和配置。分层见 docs/architecture.md；旧实现承接见 docs/baseline.md，不把目标结构说成来源已经具备。
+适用于 backend/、接口和配置。分层见 docs/architecture.md；现有实现与兼容约定见 docs/platform-overview.md，不把目标结构说成平台已经具备。
 
 | 规则 | 检查方式与不通过条件 |
 | --- | --- |

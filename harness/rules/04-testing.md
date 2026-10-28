@@ -14,7 +14,7 @@
 
 ## 信号口径和缺陷判定
 
-个人基线没有独立业务码，以该接口 OpenAPI 的 HTTP 状态、返回字段和数据副作用为准。后续如某接口经规约引入独立业务码，则以文档业务码判断成败并检查数据，不因 HTTP 200 一项判“被放行”。中间件 405/413/415 与无体204按文档的HTTP信号处理，未知业务码记待确认而非编造。
+现有接口按 OpenAPI 的 HTTP 状态、返回字段和数据副作用判定结果。后续如某接口经规约引入独立业务码，则以文档业务码判断成败并检查数据，不因 HTTP 200 一项判“被放行”。中间件 405/413/415 与无体204按文档的HTTP信号处理，未知业务码记待确认而非编造。
 
 - 被当成成功：负向请求得到约定成功信号、产生约定外写入或返回不该看的数据。
 - 被放行：权限负向用例实际拿到越权数据或写入生效。
@@ -27,4 +27,4 @@
 
 ## 阶段命令
 
-本课：`openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check` 及 docs/lesson-07/checklist.md。后续代码阶段需先实施统一门禁 `make check`，包含格式、Go vet/build/test、前端类型与行为、规约/OpenAPI同步、密钥/依赖扫描；真实集成和异机启动单列，缺失门禁不能用文档检查替代。
+第7课：`openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check` 及 docs/lesson-07/checklist.md。后续代码阶段需先实施统一门禁 `make check`，包含格式、Go vet/build/test、前端类型与行为、规约/OpenAPI同步、密钥/依赖扫描；真实集成和异机启动单列，缺失门禁不能用文档检查替代。

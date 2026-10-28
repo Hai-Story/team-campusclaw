@@ -1,6 +1,6 @@
 # 配置字典与机密边界
 
-本仓库 .env.example 每行仅有 `键名=`。它由已核对个人基线的键名加运行底座规划键组成；本课值全部留空。下表是后续实现契约，运行前按届时 README 填写。
+本仓库 .env.example 每行仅有 `键名=`。它包含现有平台配置键名和运行底座规划键；第7课值全部留空。下表是后续实现契约，运行前按届时 README 填写。
 
 | 键 | 含义与后续校验 |
 | --- | --- |
@@ -14,14 +14,14 @@
 | CHAT_BASE_URL / CHAT_API_KEY / CHAT_MODEL | 模型网关；必填，密钥仅服务端，不由请求体覆盖 |
 | QDRANT_URL | 向量依赖地址，必填，内部网络使用 |
 | MCP_AUTH_TOKEN / MCP_ENCRYPTION_KEY / MCP_ALLOWED_BASE_URLS | 工具认证、加密和精确出站白名单，必填；加密键为 64 位十六进制 |
-| MAX_UPLOAD_BYTES | 单文件上限，必填正整数；基线参考值 1048576 |
-| SESSION_TTL_HOURS | 会话有效小时数，必填正数；基线参考值 24 |
-| LOGIN_FAIL_LIMIT / LOGIN_FAIL_WINDOW_SECONDS | 登录限流阈值/窗口，必填正整数；基线参考 5 / 300 |
-| CHUNK_AUTO_MAX_CHARS / CHUNK_AUTO_OVERLAP | 切片长度/重叠；前者正整数，后者非负且小于长度；基线参考 800 / 80 |
-| VECTOR_SCORE_THRESHOLD / RRF_K / ASK_TOP_K | 检索阈值 0 到 1，融合 k 与命中数正整数；基线参考 0.25 / 60 / 4 |
-| MCP_MAX_ROUNDS / MCP_MAX_CALLS_PER_TURN / MCP_MAX_CALLS_PER_CONVERSATION | 工具轮数/单轮与会话调用预算，必填正整数；基线参考 3 / 6 / 30 |
+| MAX_UPLOAD_BYTES | 单文件上限，必填正整数；现有参考值 1048576 |
+| SESSION_TTL_HOURS | 会话有效小时数，必填正数；现有参考值 24 |
+| LOGIN_FAIL_LIMIT / LOGIN_FAIL_WINDOW_SECONDS | 登录限流阈值/窗口，必填正整数；现有参考 5 / 300 |
+| CHUNK_AUTO_MAX_CHARS / CHUNK_AUTO_OVERLAP | 切片长度/重叠；前者正整数，后者非负且小于长度；现有参考 800 / 80 |
+| VECTOR_SCORE_THRESHOLD / RRF_K / ASK_TOP_K | 检索阈值 0 到 1，融合 k 与命中数正整数；现有参考 0.25 / 60 / 4 |
+| MCP_MAX_ROUNDS / MCP_MAX_CALLS_PER_TURN / MCP_MAX_CALLS_PER_CONVERSATION | 工具轮数/单轮与会话调用预算，必填正整数；现有参考 3 / 6 / 30 |
 
-基线参考值只用于说明已存在的含义；小组运行底座不以代码默认值补齐缺失配置。模型名按获准网关实际模型填写，不把示例当可用账号或服务承诺。
+现有参考值只用于说明已存在的含义；小组运行底座不以代码默认值补齐缺失配置。模型名按获准网关实际模型填写，不把示例当可用账号或服务承诺。
 
 ## 密钥轮换流程
 
