@@ -1,6 +1,6 @@
 # 架构与目录职责
 
-技术栈沿用 React + TypeScript、Go、MySQL、Qdrant、SSE、MCP 与 Docker Compose。第7课各模块目录内只放 README，记录职责；下图为后续实现设计。
+技术栈沿用 React + TypeScript、Go、MySQL、Qdrant、SSE、MCP 与 Docker Compose。各模块职责及依赖方向如下。
 
 ```mermaid
 flowchart TD
@@ -29,6 +29,6 @@ flowchart TD
 
 ## 后续运行底座
 
-先确认主干保护、成员身份与规约评审，再按评审后的模块清单整合现有平台能力；只执行骨架一组。目标包含配置缺失即失败、匿名 /health 聚合就绪、/live 存活、请求标识、单行 JSON 日志、优雅停机与一键启动。对外契约见 change 的 specs，不以本页替代验收。
+先确认主干保护与规约评审，再按评审后的模块清单整合现有平台能力；只执行骨架一组。目标包含配置缺失即失败、匿名 /health 聚合就绪、/live 存活、请求标识、单行 JSON 日志、优雅停机与一键启动。对外契约见 change 的 specs，不以本页替代验收。
 
 新增包按职责建立；沿用现有 auth/materials/retrieval/tutor/mcp 的能力名称，持久化边界先记录再迁移。七项教学扩展后续单独拆 change，不在骨架中生成空业务接口或大批 CRUD。

@@ -23,8 +23,8 @@
 
 功能检查包括缺必填、空白/长度边界、0/false筛选、稳定分页、日期偏移和批量混入非法行。安全检查包括账号枚举、横/纵越权、权限字段注入、附件归属与SQL/页面注入。
 
-性能预算按接口规约：运行底座健康检查总预算3秒；普通非模型列表正向 p95≤500ms（100次、并发1、独立测试环境），超过300ms标记；模型首字与总时长另定，不照搬课件50/100ms样例。
+性能预算按接口规约：运行底座健康检查总预算3秒；普通非模型列表正向 p95≤500ms（100次、并发1、独立测试环境），超过300ms标记；模型首字与总时长另定。
 
 ## 阶段命令
 
-第7课：`openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check` 及 docs/lesson-07/checklist.md。后续代码阶段需先实施统一门禁 `make check`，包含格式、Go vet/build/test、前端类型与行为、规约/OpenAPI同步、密钥/依赖扫描；真实集成和异机启动单列，缺失门禁不能用文档检查替代。
+第7课：`openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check`。后续代码阶段需先实施统一门禁 `make check`，包含格式、Go vet/build/test、前端类型与行为、规约/OpenAPI同步、密钥/依赖扫描；真实集成和异机启动单列，缺失门禁不能用文档检查替代。
