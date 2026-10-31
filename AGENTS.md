@@ -6,7 +6,7 @@
 
 | 工作范围 | 必须读取的规则 |
 | --- | --- |
-| 所有任务 | harness/rules/03-security.md、04-testing.md、08-review.md |
+| 所有任务 | harness/rules/03-security.md、harness/rules/04-testing.md、harness/rules/08-review.md |
 | 产品、页面、交互、视觉 | harness/rules/01-product.md |
 | backend/、接口、配置 | harness/rules/02-backend.md |
 | deploy/、运行、发布、日志 | harness/rules/05-ops.md |
@@ -14,6 +14,8 @@
 | 存储、迁移、删除、统计 | harness/rules/07-data.md |
 
 这些文件为约束正文，不能只读取索引后宣称已加载。Codex 流程技能位于 .agents/skills/，选用相关动作的 SKILL.md；不把本项目的学习技能与开发技能混用。
+
+规则分层为：本文件的常驻底线 → 领域规则 → change 的具体场景 → task 的 verify。实现前将适用规则落实到 Requirement/Scenario 和任务；阈值、失败结果或例外不明确时先补规约，不凭实现猜测，也不以局部约定放宽安全底线。
 
 ## 无规约不写代码
 
@@ -31,7 +33,7 @@
 
 ## 检查与完成定义
 
-文档阶段执行 `openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check`，并核对文档链接及能力与场景对应关系。文档检查通过只表示规划可审阅。
+文档阶段执行 `openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check`，核对加载矩阵目标、技能的 name/description、文档链接及能力与场景对应关系。根 AGENTS.md 使用普通 Markdown；技能前置信息按 SKILL.md 格式校验。文档检查通过只表示规划可审阅。
 
 代码阶段门禁按相关 change 的任务实施；统一 make check 建成前不得声明它已经通过。变更完成须满足场景、测试、门禁、文档同步、证据归档与非作者评审；涉及提示词须有评测，数据迁移须有回滚验证。不得放宽检查、删断言或编造测试结果让门禁变绿。
 
