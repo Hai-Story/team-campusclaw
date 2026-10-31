@@ -25,3 +25,10 @@ tmp/
 *.swp
 # 本地 Harness 记录
 .codex-log/
+# PDF 与字体文件
+*.pdf
+*.ttf
+*.otf
+*.ttc
+*.woff
+*.woff2
