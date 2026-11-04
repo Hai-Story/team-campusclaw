@@ -33,3 +33,6 @@ tmp/
 *.woff
 *.woff2
 *.tsbuildinfo
+.secrets/
+__pycache__/
+*.pyc

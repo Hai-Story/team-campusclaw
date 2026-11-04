@@ -2,9 +2,13 @@
 """Create a private, isolated verification configuration without changing an existing one."""
 from pathlib import Path
 import secrets
-import subprocess
 
 root = Path(__file__).resolve().parents[1]
+secret_dir=root/'.secrets';secret_dir.mkdir(mode=0o700,exist_ok=True);secret_dir.chmod(0o700)
+root_password=secret_dir/'mysql-root'
+if not root_password.exists():
+    with root_password.open('x') as handle:
+        root_password.chmod(0o600);handle.write(secrets.token_hex(32)+'\n')
 target = root / '.env'
 if target.exists():
     print('沿用已有本机 .env')

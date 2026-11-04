@@ -1,4 +1,4 @@
-.PHONY: dev check check-go check-frontend
+.PHONY: dev check check-go check-frontend check-security precheck
 
 dev:
 	python3 scripts/dev_env.py
@@ -17,3 +17,10 @@ check: check-go check-frontend
 	python3 scripts/generate_openapi.py --check
 	git diff --check
 	python3 apitest/run_all.py
+	$(MAKE) check-security
+
+check-security:
+	python3 scripts/check_security.py
+
+precheck:
+	python3 apitest/security_precheck.py

@@ -11,7 +11,7 @@ services:
   db:
     image: mysql:8.0
     environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root
       MYSQL_DATABASE: ${MYSQL_DATABASE:?请填写MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER:?请填写MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请填写MYSQL_PASSWORD}
@@ -21,6 +21,7 @@ services:
       timeout: 2s
       retries: 40
     volumes: ["dbdata:/var/lib/mysql"]
+    secrets: [mysql_root]
   api:
     <<: *api
   worker:
@@ -72,3 +73,6 @@ volumes:
   uploads:
   qdrant_data:
   rabbitdata:
+secrets:
+  mysql_root:
+    file: ./.secrets/mysql-root
