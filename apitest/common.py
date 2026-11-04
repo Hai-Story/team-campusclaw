@@ -19,7 +19,7 @@ class Context:
             raise RuntimeError('Compose操作失败: '+args[0]+' (退出'+str(result.returncode)+'): '+detail)
         return result.stdout.strip()
     def sql(self,query):
-        result=self.compose('exec','-T','db','sh','-c','MYSQL_PWD="$MYSQL_PASSWORD" exec mysql --batch --raw --skip-column-names -u "$MYSQL_USER" "$MYSQL_DATABASE"',input=query)
+        result=self.compose('exec','-T','db','sh','-c','MYSQL_PWD="$MYSQL_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --raw --skip-column-names -u "$MYSQL_USER" "$MYSQL_DATABASE"',input=query)
         return [line.split('\t') for line in result.splitlines() if line]
     def request(self,path,body=None,who='student',method=None,headers=None):
         h={'Content-Type':'application/json',**(headers or {})}

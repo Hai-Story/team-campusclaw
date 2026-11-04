@@ -26,6 +26,7 @@
 | materials | Materials.tsx | 教师/学生，操作按服务端权限 |
 | ask | Ask.tsx | 教师/学生 |
 | tutor | Tutor.tsx | 学生 |
+| homework | Homework.tsx | 教师发布本班作业，学生提交与轮询本人批改；A1/A4 |
 
 这张表描述现有入口，迁移时再核对。七项扩展的页面/路由由各 change 单独增加。
 
