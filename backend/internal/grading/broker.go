@@ -12,6 +12,18 @@ import (
 const WorkQueue = "grade.jobs"
 const DeadQueue = "grade.dead"
 
+func (b *Broker) QueueStats() (map[string]any, error) {
+	stats := map[string]any{}
+	for _, name := range []string{WorkQueue, DeadQueue} {
+		queue, err := b.consumer.QueueInspect(name)
+		if err != nil {
+			return nil, err
+		}
+		stats[name] = map[string]int{"ready_messages": queue.Messages, "consumers": queue.Consumers}
+	}
+	return stats, nil
+}
+
 type Message struct {
 	TaskID     string `json:"task_id"`
 	Kind       string `json:"kind"`

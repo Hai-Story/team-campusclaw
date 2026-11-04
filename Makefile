@@ -14,4 +14,6 @@ check-frontend:
 
 check: check-go check-frontend
 	openspec validate 2026-11-04-async-grading --strict
+	python3 scripts/generate_openapi.py --check
 	git diff --check
+	python3 apitest/run_all.py

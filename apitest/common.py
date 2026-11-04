@@ -63,3 +63,9 @@ class Context:
         for who in list(self.tokens):
             try:self.request('/api/logout',{},who=who)
             except Exception:pass
+    def discard(self,assignment):
+        assignment=int(assignment)
+        if assignment not in self.assignments:raise ValueError('不能清理非本次创建的作业')
+        self.sql(f'DELETE FROM submissions WHERE assignment_id={assignment}; DELETE FROM grade_assignments WHERE id={assignment};')
+        self.assignments.remove(assignment)
+    def queues(self):return json.loads(self.compose('exec','-T','worker','/app/grade-worker','-queues'))

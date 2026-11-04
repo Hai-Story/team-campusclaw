@@ -19,6 +19,7 @@ func main() {
 	publish := flag.String("publish", "", "publish an existing task ID for controlled replay")
 	migrate := flag.Bool("migrate", false, "repeat the idempotent migration")
 	metrics := flag.Bool("metrics", false, "read task counts")
+	queues := flag.Bool("queues", false, "read queue lengths")
 	flag.Parse()
 	cfg, err := config.Load()
 	if err != nil {
@@ -37,6 +38,19 @@ func main() {
 		log.Fatal("数据库不可用")
 	}
 	store := &grading.Store{DB: d}
+	if *queues {
+		broker, err := grading.OpenBroker(settings.AMQPURL)
+		if err != nil {
+			log.Fatal("消息代理不可用")
+		}
+		defer broker.Close()
+		counts, err := broker.QueueStats()
+		if err != nil {
+			log.Fatal("队列指标不可用")
+		}
+		json.NewEncoder(os.Stdout).Encode(counts)
+		return
+	}
 	if *migrate {
 		if grading.Migrate(d) != nil {
 			log.Fatal("迁移失败")
