@@ -285,7 +285,7 @@ func (m *Manager) Connect(ctx context.Context, class, id int64) (Server, error) 
 		return failed(e)
 	}
 	if len(discovery.Tools) > 64 || discovery.NextCursor != "" {
-		return failed(errors.New("本课仅接受单页最多64个工具"))
+		return failed(errors.New("仅接受单页最多64个工具"))
 	}
 	seen := map[string]bool{}
 	for i := range discovery.Tools {
@@ -355,7 +355,7 @@ func (m *Manager) Approve(ctx context.Context, class, id int64, name, hash strin
 			return &apiError{409, "工具说明已变化，请重新查看并确认"}
 		}
 		if !readOnly(t) {
-			return invalid("本课只允许只读、非外发且非破坏性的工具")
+			return invalid("只允许只读、非外发且非破坏性的工具")
 		}
 		tx, e := m.DB.BeginTx(ctx, nil)
 		if e != nil {

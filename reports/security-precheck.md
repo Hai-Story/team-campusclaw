@@ -1,6 +1,6 @@
 # 安全自查
 
-日期：2026-11-04。环境：`campusclaw-team-async`，合成A/B班、真实MySQL与RabbitMQ、本地模型网关替身。`make precheck`执行权限与日志检查，`make check-security`执行资产检查；原始脱敏结果生成于本机`output/`。
+日期：2026-11-04。受测HEAD：`d89340d2fb71afd096287b448593b17835eeccc3`，含当时待提交自查更改。环境：`campusclaw-team-async`，合成A/B班、真实MySQL与RabbitMQ、本地模型网关替身。`make precheck`执行权限与日志检查，`make check-security`执行资产检查；原始脱敏结果生成于本机`output/`。
 
 ## 接口范围
 
@@ -24,7 +24,7 @@ SEC-04中`/api/tasks/{id}/grade`不存在，其404只证明该入口未开放；
 
 SEC-07缺`actor_id`、`skill_id`、`usage`，准备在教学技能执行日志层补充。新增批改worker已包含这5项字段，不能替代教学技能日志缺口。可选的本人诊断trace也不等同操作审计。SEC-06处置范围与扫描原文见[资产基线](security-baseline.md)，登记不表示放行。
 
-`make precheck`实测退出1（SEC-07）；`make check-security`实测退出1（依赖风险）。保留红项，不提前修改既有风险。
+`make precheck`实测退出2（脚本1，SEC-07）；`make check-security`实测退出2（脚本1，依赖风险）。保留红项，不提前修改既有风险。
 
 ## 后续验证素材
 

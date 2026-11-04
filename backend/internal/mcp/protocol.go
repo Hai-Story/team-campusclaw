@@ -179,7 +179,7 @@ func rpc(ctx context.Context, base, token, method string, params any, out any) e
 		return fmt.Errorf("MCP服务返回%d，请检查地址与令牌", res.StatusCode)
 	}
 	if res.Header.Get("Mcp-Session-Id") != "" {
-		return errors.New("本课客户端不支持有状态MCP会话")
+		return errors.New("当前客户端不支持有状态MCP会话")
 	}
 	var data []byte
 	reader := io.LimitReader(res.Body, (1<<20)+1)

@@ -96,7 +96,7 @@ def write_report(data):
     for name,item in data['dependencies']['go'].items():
         lines+=[f"- {name}：退出{item['exit_code']}，可达通告{item['reachable_count']}项；{item['severity']}。"]
         if item['reachable_advisories']:lines+=['  '+', '.join(item['reachable_advisories'])]
-    lines+=['','命令末行原文：','', '```json', json.dumps({'SEC-05_hits':data['secrets']['hits'],'npm_counts':data['dependencies']['npm']['counts'],'go_reachable':{name:value['reachable_count'] for name,value in data['dependencies']['go'].items()},'gate':'RED' if data['red'] else 'GREEN'},ensure_ascii=False), '```','','## 判定与处置','',f"本次资产门禁：**{'红' if data['red'] else '绿'}**，入口退出码{1 if data['red'] else 0}。",'',
+    lines+=['','命令末行原文：','', '```json', json.dumps({'SEC-05_hits':data['secrets']['hits'],'npm_counts':data['dependencies']['npm']['counts'],'go_reachable':{name:value['reachable_count'] for name,value in data['dependencies']['go'].items()},'gate':'RED' if data['red'] else 'GREEN'},ensure_ascii=False), '```','','## 判定与处置','',f"本次资产门禁：**{'红' if data['red'] else '绿'}**，Python脚本退出码{1 if data['red'] else 0}（make目标退出{2 if data['red'] else 0}）。",'',
             '已发现的依赖问题登记为待处置：后续变更升级Go构建链及受影响前端依赖，复跑构建、功能与依赖检查后再评审；登记不表示问题已修复或获准放行。','',
             '完整脱敏扫描输出由命令生成在本机output/security/；本文件保留计数、退出码与通告编号，可运行相同入口复核。']
     (reports/'security-baseline.md').write_text('\n'.join(lines)+'\n')

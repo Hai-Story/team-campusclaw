@@ -564,5 +564,146 @@
         }
       }
     }
+  },
+  "GradingAssignment": {
+    "type": "object",
+    "required": [
+      "id",
+      "title",
+      "question",
+      "max_score",
+      "created_at"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64",
+        "minimum": 1
+      },
+      "title": {
+        "type": "string"
+      },
+      "question": {
+        "type": "string"
+      },
+      "expected_answer": {
+        "type": "string",
+        "description": "仅教师响应包含"
+      },
+      "max_score": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "SubmissionReceipt": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "submission_id",
+      "task_id",
+      "status",
+      "status_url"
+    ],
+    "properties": {
+      "submission_id": {
+        "type": "integer",
+        "format": "int64",
+        "minimum": 1
+      },
+      "task_id": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{32}$"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "running",
+          "succeeded",
+          "failed"
+        ]
+      },
+      "status_url": {
+        "type": "string"
+      }
+    }
+  },
+  "GradingResult": {
+    "type": "object",
+    "required": [
+      "score",
+      "max_score",
+      "feedback"
+    ],
+    "properties": {
+      "score": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "max_score": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100
+      },
+      "feedback": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    }
+  },
+  "GradingTask": {
+    "type": "object",
+    "required": [
+      "task_id",
+      "submission_id",
+      "status",
+      "attempts"
+    ],
+    "properties": {
+      "task_id": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{32}$"
+      },
+      "submission_id": {
+        "type": "integer",
+        "format": "int64",
+        "minimum": 1
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "running",
+          "succeeded",
+          "failed"
+        ]
+      },
+      "attempts": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "error": {
+        "type": "string"
+      },
+      "started_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "finished_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "result": {
+        "$ref": "#/components/schemas/GradingResult"
+      }
+    }
   }
 }

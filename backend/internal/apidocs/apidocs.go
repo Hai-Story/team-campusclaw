@@ -1,4 +1,4 @@
-// Package apidocs embeds locally shipped Swagger UI and generated API contracts.
+// Package apidocs embeds the API reference page and generated OpenAPI contract.
 package apidocs
 
 import (

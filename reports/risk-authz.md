@@ -1,5 +1,7 @@
 # 权限复现
 
+日期：2026-11-04。受测HEAD：`d89340d2fb71afd096287b448593b17835eeccc3`，含当时待提交自查更改。
+
 手段：`make precheck`中SEC-01至SEC-04的真实HTTP请求与数据库前后对照；仅使用隔离环境合成数据。
 
 范围：未登录接口、跨班资料与检索、学生修改技能/智能体/模板、提交成绩字段及跨班任务读取。
@@ -14,6 +16,6 @@
 make precheck
 ```
 
-入口创建本次专属资料和作业，使用A教师、A1与B学生账号，自动登录并清理本次数据；不在命令行传递口令。查看SEC-02中的`cross_status=404`、`missing_status=404`、`business_response_equal=true`、`own_keyword_hits=1`、`foreign_keyword_hits=0`。整体退出1来自SEC-07日志缺字段，不能把它误记成权限失败。
+入口创建本次专属资料和作业，使用A教师、A1与B学生账号，自动登录并清理本次数据；不在命令行传递口令。查看SEC-02中的`cross_status=404`、`missing_status=404`、`business_response_equal=true`、`own_keyword_hits=1`、`foreign_keyword_hits=0`。脚本退出1、make退出2来自SEC-07日志缺字段，不能把它误记成权限失败。
 
 关键字模式用于本次唯一词判据；本地恒定嵌入替身不验证语义检索质量。成绩结果只由worker写入，没有HTTP改分接口；不存在的grade路径404只作入口暴露检查。
