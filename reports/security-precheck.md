@@ -1,6 +1,6 @@
 # 安全自查
 
-日期：2026-11-04。受测HEAD：`d89340d2fb71afd096287b448593b17835eeccc3`，含当时待提交自查更改。环境：`campusclaw-team-async`，合成A/B班、真实MySQL与RabbitMQ、本地模型网关替身。`make precheck`执行权限与日志检查，`make check-security`执行资产检查；原始脱敏结果生成于本机`output/`。
+日期：2026-11-04。受测提交：`5aa5b63d78f838661a7a2bc3b76692967c09a1c6`。环境：`campusclaw-team-async`，合成A/B班、真实MySQL与RabbitMQ、本地模型网关替身。`make precheck`执行权限与日志检查，`make check-security`执行资产检查；原始脱敏结果生成于本机`output/`。
 
 ## 接口范围
 
