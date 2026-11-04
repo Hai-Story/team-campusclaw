@@ -1,7 +1,7 @@
 ## 1. 规约与运行基础
 
 - [x] 1.1 建立四件套并补齐代码评审规则；verify：openspec validate 2026-11-04-async-grading --strict、技能格式与git diff --check通过。
-- [ ] 1.2 整合最小平台、严格配置、健康与请求日志，增加隔离Compose及消息代理；verify：Go vet/test/build、前端构建、Compose校验通过，隔离启动后登录、资料、探针可用，缺必填/非法端口非零退出。
+- [x] 1.2 整合最小平台、严格配置、健康与请求日志，增加隔离Compose及消息代理；verify：Go vet/test/build、前端构建、Compose校验通过，隔离启动后登录、资料、探针可用，缺必填/非法端口非零退出。
 
 ## 2. 作业与异步执行
 

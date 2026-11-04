@@ -1,0 +1,568 @@
+{
+  "User": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "username": {
+        "type": "string"
+      },
+      "role": {
+        "type": "string",
+        "enum": [
+          "teacher",
+          "student"
+        ]
+      },
+      "class_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "class_name": {
+        "type": "string"
+      }
+    }
+  },
+  "AgentInput": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "prompt": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "enabled": {
+        "type": "boolean"
+      },
+      "skill_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "material_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "enabled"
+    ]
+  },
+  "Agent": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "prompt": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "enabled": {
+        "type": "boolean"
+      },
+      "skill_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "material_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "app_key": {
+        "type": "string",
+        "readOnly": true,
+        "description": "服务端按内置应用标识派生；客户端不能设置"
+      }
+    }
+  },
+  "SkillInput": {
+    "type": "object",
+    "properties": {
+      "source_text": {
+        "type": "string",
+        "maxLength": 8000
+      }
+    },
+    "required": [
+      "source_text"
+    ]
+  },
+  "Skill": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "name": {
+        "type": "string"
+      },
+      "trigger_text": {
+        "type": "string"
+      },
+      "subject_text": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "tools": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "enabled": {
+        "type": "boolean"
+      },
+      "source_text": {
+        "type": "string"
+      },
+      "resources": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "仅存储UTF-8附件，不自动注入模型"
+      }
+    }
+  },
+  "Conversation": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "agent_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "agent_name": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "服务端RFC3339 UTC时间；updated_at取会话活动与最新已存消息时间的较大值"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "服务端RFC3339 UTC时间；updated_at取会话活动与最新已存消息时间的较大值"
+      },
+      "agent_deleted": {
+        "type": "boolean",
+        "description": "所属智能体已删除时为true；历史只读，可删除对话，继续提问返回409。"
+      }
+    }
+  },
+  "Citation": {
+    "type": "object",
+    "properties": {
+      "index": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "material_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "material_title": {
+        "type": "string"
+      },
+      "chunk_index": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "char_start": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "char_end": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "excerpt": {
+        "type": "string"
+      }
+    }
+  },
+  "Message": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "role": {
+        "type": "string",
+        "enum": [
+          "user",
+          "assistant"
+        ]
+      },
+      "content": {
+        "type": "string"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Citation"
+        }
+      },
+      "skill_name": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "complete",
+          "partial"
+        ]
+      },
+      "tool_calls": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/MCPCall"
+        }
+      },
+      "has_trace": {
+        "type": "boolean"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "服务端RFC3339 UTC时间：用户为接收创建时刻，助手为开始生成时刻；北京时间仅在客户端展示"
+      }
+    }
+  },
+  "Material": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "title": {
+        "type": "string"
+      },
+      "class_name": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string"
+      }
+    }
+  },
+  "Hit": {
+    "type": "object",
+    "properties": {
+      "material_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "material_title": {
+        "type": "string"
+      },
+      "chunk_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "chunk_index": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "char_start": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "char_end": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "excerpt": {
+        "type": "string"
+      },
+      "keyword_score": {
+        "type": "number"
+      },
+      "vector_score": {
+        "type": "number"
+      },
+      "rrf_score": {
+        "type": "number"
+      }
+    }
+  },
+  "MCPServer": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "name": {
+        "type": "string"
+      },
+      "base_url": {
+        "type": "string"
+      },
+      "connected": {
+        "type": "boolean"
+      },
+      "has_auth": {
+        "type": "boolean"
+      },
+      "last_error": {
+        "type": "string"
+      },
+      "tool_count": {
+        "type": "integer",
+        "format": "int64"
+      }
+    }
+  },
+  "MCPServerInput": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_-]{0,47}$"
+      },
+      "base_url": {
+        "type": "string",
+        "format": "uri"
+      },
+      "auth_token": {
+        "type": "string",
+        "writeOnly": true,
+        "format": "password",
+        "maxLength": 512,
+        "description": "仅提交，不回传；修改留空保留原令牌。"
+      }
+    },
+    "required": [
+      "name",
+      "base_url"
+    ]
+  },
+  "MCPTool": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "annotations": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "fingerprint": {
+        "type": "string"
+      },
+      "approved": {
+        "type": "boolean"
+      },
+      "read_only": {
+        "type": "boolean"
+      }
+    }
+  },
+  "MCPCall": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "ref": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "denied",
+          "error"
+        ]
+      },
+      "text": {
+        "type": "string"
+      },
+      "round": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "server_name": {
+        "type": "string"
+      },
+      "user_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "username": {
+        "type": "string"
+      },
+      "conversation_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "request_message_id": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "created_at": {
+        "type": "string"
+      }
+    }
+  },
+  "AIApp": {
+    "type": "object",
+    "properties": {
+      "key": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "icon": {
+        "type": "string"
+      },
+      "agent_id": {
+        "type": "integer"
+      },
+      "enabled": {
+        "type": "boolean"
+      },
+      "system_template": {
+        "type": "string"
+      },
+      "user_template": {
+        "type": "string"
+      },
+      "fields": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "placeholder": {
+              "type": "string"
+            },
+            "max_length": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "template_version": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  },
+  "LLMTrace": {
+    "type": "object",
+    "properties": {
+      "truncated": {
+        "type": "boolean"
+      },
+      "calls": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "properties": {
+            "phase": {
+              "type": "string",
+              "enum": [
+                "tool-planning",
+                "final-stream"
+              ]
+            },
+            "request": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "request_truncated": {
+              "type": "boolean"
+            },
+            "response": {
+              "type": "string"
+            },
+            "response_truncated": {
+              "type": "boolean"
+            },
+            "http_status": {
+              "type": "integer"
+            },
+            "started_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "error": {
+              "type": "string"
+            },
+            "output_text": {
+              "type": "string",
+              "description": "原始delta.content合并，未经过引用过滤"
+            },
+            "output_truncated": {
+              "type": "boolean"
+            },
+            "finish_reason": {
+              "type": "string"
+            },
+            "usage": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

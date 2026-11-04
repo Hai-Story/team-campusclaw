@@ -32,3 +32,4 @@ tmp/
 *.ttc
 *.woff
 *.woff2
+*.tsbuildinfo
