@@ -84,3 +84,32 @@ func newID() (string, error) {
 	}
 	return hex.EncodeToString(buf), nil
 }
+
+type Work struct {
+	TaskID, RunToken, IdempotencyKey string
+	SubmissionID, ClassID, ActorID   int64
+	Attempts, MaxScore               int
+	Question, Answer, Expected       string
+}
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+}
+type GradeError struct {
+	Code  string
+	Retry bool
+}
+
+func (e *GradeError) Error() string { return e.Code }
+func Score(answer, expected string, max int) int {
+	if strings.TrimSpace(answer) == strings.TrimSpace(expected) {
+		return max
+	}
+	return 0
+}
+
+type Settings struct {
+	AMQPURL, ChatURL, ChatKey, Model string
+	Timeout, Lease, RetryBase, Poll  time.Duration
+	MaxAttempts                      int
+}
