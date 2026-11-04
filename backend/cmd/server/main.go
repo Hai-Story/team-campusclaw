@@ -29,6 +29,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("配置错误：%v", err) // 失败即停，禁止内置默认值（spec R7）
 	}
+	if _, err := grading.LoadSettings(); err != nil {
+		log.Fatal(err)
+	}
 	d, err := db.Open(cfg)
 	if err != nil {
 		log.Fatalf("数据库配置错误：%v", err)

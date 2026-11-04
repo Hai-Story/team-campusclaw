@@ -16,7 +16,7 @@ const server=http.createServer(async(req,res)=>{
  await new Promise(resolve=>setTimeout(resolve,settings.delay_ms))
  const status=settings.statuses[Math.min(n-1,settings.statuses.length-1)]||200
  if(status!==200){res.writeHead(status);res.end('{"error":"controlled fixture error"}');return}
- const content=task==='teaching'?'请先检查题目中的已知条件，再核对每一步推导。':JSON.stringify({feedback:'已核对本次作答。请结合题目检查计算步骤，并订正错误。'})
+ const content=task==='teaching'?'请先检查题目中的已知条件，再核对每一步推导。':JSON.stringify({feedback:`第${n}次调用：已核对本次作答，请结合题目检查计算步骤。`})
  if(body.stream){res.setHeader('Content-Type','text/event-stream');res.write('data: '+JSON.stringify({choices:[{delta:{content}}]})+'\n\n');res.end('data: [DONE]\n\n');return}
  res.end(JSON.stringify({choices:[{message:{role:'assistant',content}}],usage:{prompt_tokens:20,completion_tokens:12,total_tokens:32}}))
 })

@@ -23,6 +23,20 @@ services:
     volumes: ["dbdata:/var/lib/mysql"]
   api:
     <<: *api
+  worker:
+    <<: *api
+    command: [/app/grade-worker]
+    depends_on:
+      db: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+      api: {condition: service_started}
+  relay:
+    <<: *api
+    command: [/app/grade-relay]
+    depends_on:
+      db: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+      api: {condition: service_started}
   rabbitmq:
     image: rabbitmq:4.1.4-management-alpine
     environment:
