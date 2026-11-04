@@ -1,6 +1,6 @@
 # CampusClaw 小组仓库规则
 
-项目：中小学教研智能体功能扩展。开工先读 README.md、对应 change 的 proposal/design/specs/tasks，复述其范围与 Non-goals，再按下表读取规则正文。验证结果记录在 docs/lesson-07/verification.md。
+项目：中小学教研智能体功能扩展。开工先读 README.md、对应 change 的 proposal/design/specs/tasks，复述其范围与 Non-goals，再按下表读取规则正文。验证结果归入对应变更的证据文件；异步批改与安全自查使用根目录 reports/ 的固定记录路径。
 
 ## 规则加载入口
 
@@ -33,7 +33,7 @@
 
 ## 检查与完成定义
 
-文档阶段执行 `openspec validate 2026-10-28-team-project-kickoff --strict`、`git diff --check`，核对加载矩阵目标、技能的 name/description、文档链接及能力与场景对应关系。根 AGENTS.md 使用普通 Markdown；技能前置信息按 SKILL.md 格式校验。文档检查通过只表示规划可审阅。
+文档阶段执行 `openspec validate <change> --strict`、`git diff --check`，核对加载矩阵目标、技能的 name/description、文档链接及能力与场景对应关系。根 AGENTS.md 使用普通 Markdown；技能前置信息按 SKILL.md 格式校验。文档检查通过只表示规划可审阅。
 
 代码阶段门禁按相关 change 的任务实施；统一 make check 建成前不得声明它已经通过。变更完成须满足场景、测试、门禁、文档同步、证据归档与非作者评审；涉及提示词须有评测，数据迁移须有回滚验证。不得放宽检查、删断言或编造测试结果让门禁变绿。
 
