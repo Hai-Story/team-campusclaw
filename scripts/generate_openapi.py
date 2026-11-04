@@ -17,6 +17,9 @@ def generate():
     responses[str(v['status'])]['content']={media:content}
    for code,msg in v['errors'].items():responses[code]={'description':msg,'content':{'application/json':{'schema':{'$ref':'#/components/schemas/Error'},'example':{'error':msg}}}}
    params=v.get('parameters',[])+[{'name':name,'in':'path','required':True,'schema':({'type':'string','pattern':'^[a-z][a-z0-9_]{0,47}$'} if name=='tool' else {'type':'string','enum':['concept','reading','writing','review']} if name=='key' else {'type':'integer','minimum':1})} for name in re.findall(r'\{(\w+)\}',path)]
+   if path=='/api/tasks/{id}':
+    for param in params:
+     if param['name']=='id':param['schema']={'type':'string','pattern':'^[a-f0-9]{32}$'}
    op={'summary':v['summary'],'description':v.get('description','')+(' 仅教师可操作。' if v['auth']=='teacher' else ' 仅学生可使用。' if v['auth']=='student' else ''),'operationId':method.lower()+'_'+re.sub(r'[^a-zA-Z0-9]+','_',path).strip('_'),'tags':[path.split('/')[2] if path.startswith('/api/') else 'system'],'security':[] if v['auth']=='public' else [{'bearerAuth':[]}],'responses':responses}
    if params:op['parameters']=params
    if v.get('request'):op['requestBody']={'required':True,'content':{v.get('requestMedia','application/json'):{'schema':v['request']}}}

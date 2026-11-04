@@ -16,6 +16,7 @@ import (
 	"campusclaw/backend/internal/auth"
 	"campusclaw/backend/internal/config"
 	"campusclaw/backend/internal/db"
+	"campusclaw/backend/internal/grading"
 	"campusclaw/backend/internal/materials"
 	"campusclaw/backend/internal/mcp"
 	"campusclaw/backend/internal/retrieval"
@@ -54,6 +55,9 @@ func main() {
 	}
 	if err := tutor.Seed(d); err != nil {
 		log.Fatalf("助手种子失败：%v", err)
+	}
+	if err := grading.Migrate(d); err != nil {
+		log.Fatal("作业迁移失败")
 	}
 
 	authSvc := auth.NewService(d, cfg)
@@ -95,6 +99,7 @@ func main() {
 	mux := http.NewServeMux()
 	apidocs.Mount(mux)
 	runtimehttp.Probes(mux, d, cfg.Version, cfg.QdrantURL, strings.Split(os.Getenv("MCP_ALLOWED_BASE_URLS"), ",")[0])
+	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 
 	mux.HandleFunc("POST /api/login", dbGuard(authSvc.Login))
 	mux.HandleFunc("POST /api/logout", dbGuard(authSvc.Logout))

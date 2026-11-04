@@ -163,6 +163,9 @@ func Seed(d *sql.DB, cfg *config.Config) error {
 	if _, err := ensureUser(d, "student_a1", cfg.SeedStudentPassword, "student", classA); err != nil {
 		return err
 	}
+	if _, err := ensureUser(d, "student_a2", cfg.SeedStudentPassword, "student", classA); err != nil {
+		return err
+	}
 	if _, err := ensureUser(d, "student_b1", cfg.SeedStudentPassword, "student", classB); err != nil {
 		return err
 	}
