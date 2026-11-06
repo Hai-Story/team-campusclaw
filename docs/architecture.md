@@ -1,34 +1,40 @@
-# 架构与目录职责
+# 架构与目录
 
-技术栈沿用 React + TypeScript、Go、MySQL、Qdrant、SSE、MCP 与 Docker Compose。各模块职责及依赖方向如下。
+React/TypeScript经Nginx访问Go API；MySQL保存业务事实，Qdrant提供向量检索，教学会话使用SSE，工具调用经受控MCP适配。
 
 ```mermaid
-flowchart TD
-    A[浏览器 / React] --> B[web / Nginx]
-    B --> C[Go 路由 / 身份与参数边界]
-    C --> D[教学业务服务]
-    D --> E[数据访问接口]
-    E --> F[MySQL]
-    D --> G[适配层]
-    G --> H[Qdrant]
-    G --> I[模型网关]
-    G --> J[MCP 服务]
+flowchart LR
+    Browser[浏览器] --> Web[Nginx]
+    Web --> API[Go API / 会话与班级边界]
+    API --> DB[(MySQL)]
+    API --> Qdrant[Qdrant]
+    API --> Model[模型网关]
+    API --> MCP[MCP适配]
+    DB --> Relay[发件箱投递器]
+    Relay --> MQ[RabbitMQ持久队列]
+    MQ --> Worker[独立批改消费者]
+    Worker --> Model
+    Worker --> DB
 ```
 
-| 目录 | 责任 | 依赖与检查 |
-| --- | --- | --- |
-| frontend/ | 页面、组件、API 客户端、SSE 状态与可达性 | 只调用服务端 API；不含模型密钥和授权决策 |
-| backend/ | 配置、路由与鉴权、业务规则、存储与外部适配 | 依赖方向为边界→服务→数据访问；SQL 不能出现在页面/handler/新业务编排中 |
-| mcp-server/ | 已授权的教学工具协议适配 | 复用服务层，逐请求验证用户与班级，禁止为模型开数据库后门 |
-| deploy/ | 构建、反代、环境与发布设计 | 后续只有 web 映射对外端口；机密运行时注入 |
-| apitest/ | 场景来源、接口与端到端验收 | 规划沿用 URL 对齐目录与方法名，复用现有 Python 用例格式，避免套用样例 JSON |
-| docs/ | 项目、运行说明、决策与证据 | 运行结论写明环境、命令、退出码与适用范围 |
-| harness/rules/ | 常驻生成约束 | 由 AGENTS.md 的加载矩阵指向 |
-| .agents/skills/ | 按动作调用的流程 | 统一输入、步骤、产出与停止条件 |
-| openspec/changes/ | 当前 change 的四件套 | proposal/design/specs/tasks，长期 specs 仅归档时更新 |
+学生提交时只在一个事务中写submissions、grade_tasks与grade_outbox，再返回202。relay在事务外发布并等待确认；worker短事务领取租约，事务外调用模型，结果事务提交后才ACK。投递可重复，唯一约束与租约标识保证一份生效结果。重试事件和死信事件也通过发件箱可靠发布。
 
-## 后续运行底座
+| 目录 | 职责 |
+| --- | --- |
+| frontend/ | 页面、类型化API、SSE与可取消的任务轮询；不承担授权或评分 |
+| backend/internal/grading/ | HTTP参数/身份边界、存储事务、队列和模型适配；SQL集中于存储层 |
+| backend/cmd/ | API、worker、relay三个独立入口 |
+| backend/internal/auth、materials、retrieval、tutor、mcp/ | 会话、资料、检索、学习智能体与工具的现有契约；持久化兼容例外见后端规则E1 |
+| mcp-server/ | 令牌校验的教学工具演示服务，不直接写成绩或读取班级数据库 |
+| deploy/ | 前端多阶段构建和Nginx反代；Compose仅web绑定本机端口 |
+| apitest/ | 按URL/方法组织的正常、失败与边界场景，本地模型替身及合成数据清理 |
+| scripts/ | 私有验证配置、OpenAPI生成与资产检查入口 |
+| reports/ | 异步、安全与评审的必要复现记录 |
+| harness/rules/、.agents/skills/ | 常驻领域规则与按动作调用的流程技能 |
+| openspec/changes/ | 当前四件套；长期specs只由归档同步 |
 
-先确认主干保护与规约评审，再按评审后的模块清单整合现有平台能力；只执行骨架一组。目标包含配置缺失即失败、匿名 /health 聚合就绪、/live 存活、请求标识、单行 JSON 日志、优雅停机与一键启动。对外契约见 change 的 specs，不以本页替代验收。
+任务状态、错误分类、重试预算与验证阈值以[异步规约](../openspec/changes/2026-11-04-async-grading/specs/async-homework-grading/spec.md)为准。`grade.jobs`与`grade.dead`均为持久队列，消息持久化、手工确认、prefetch=1；死信只保留待检查，不自动重放。
 
-新增包按职责建立；沿用现有 auth/materials/retrieval/tutor/mcp 的能力名称，持久化边界先记录再迁移。七项教学扩展后续单独拆 change，不在骨架中生成空业务接口或大批 CRUD。
+回退时停止新提交入口及relay/worker，保留新增表、待办和结果；恢复新版本后继续消费。隔离环境已验证消费者与代理恢复，正式发布的备份恢复、异机启动和合入仍须独立评审。
+
+教师终评经角色/班级校验，锁定提交并比较expected_version；当前终评与追加历史同事务写入。AI初判记录保留，后到或重复消息不能覆盖终评。错题查询取每作业最新作答，优先使用教师判断，否则使用AI判断。
