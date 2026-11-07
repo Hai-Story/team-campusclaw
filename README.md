@@ -1,40 +1,62 @@
-# CampusClaw 中小学教研智能体功能扩展
+# CampusClaw 中小学教研智能体
 
-面向中小学教师与学生，在现有平台上增量开发，扩展备课、命题、学习诊断与课后巩固能力，以本班资料和可核对的证据支撑教学。
+面向教师与学生，在现有平台上增量开发，提供本班资料检索、学习会话与作业练习与教师终评。
 
-[小组仓库](https://github.com/Hai-Story/team-campusclaw) · [选题与边界](docs/project-brief.md)
+[小组仓库](https://github.com/Hai-Story/team-campusclaw) · [扩展规划](docs/project-brief.md)
 
-## 现有平台能力
+## 功能
 
-平台已具备服务端会话登录、角色与班级隔离、资料上传与管理、可追溯知识库检索、提示词与 AI 技能配置、SSE 流式学习会话，以及 MCP 工具接入。小组在这些能力上围绕教学场景进行增量开发。
+- 服务端会话登录、教师/学生角色与班级隔离，资料上传、编辑、下载和删除。
+- 关键字、向量与混合检索，带资料出处的问答、SSE学习会话、教学技能与MCP工具接入。
+- 教师按语文、数学、英语、科学、思想品德发布作业并审阅作答；学生提交后查看AI初判、教师终评和分学科错题，可逐题生成错题讲解。
+- 提交/任务/发件箱同事务受理；RabbitMQ持久消息、独立消费者、租约接管、结果去重、有界重试与死信。
 
-## 第7课交付
+AI仅给出对错初判与反馈，教师独立确认最终对错及分数。错题以每份作业的最新作答为准，教师终评优先；改判正确即移出错题。七项教学扩展的候选范围见扩展规划，按独立规约推进。
 
-项目定位、工程规范、Harness 规则与技能、OpenSpec 四件套、配置键名和目录职责已经确定，运行底座按任务清单逐项实施和验证。
+## 启动
 
-规划七项扩展：智能备课、智能命题、学情诊断、知识图谱、间隔复习、讲题模拟、学生互评。首轮业务模块与优先级待确定。
-
-## 获取与检查第7课材料
-
-需要 Git；规约检查使用 OpenSpec CLI 1.13.0。已有 CLI 时：
+需要Docker Compose、Python 3、Node.js 24及npm；规约检查使用OpenSpec CLI 1.13.0。作业初判使用部署者配置的模型服务。
 
 ```bash
 git clone https://github.com/Hai-Story/team-campusclaw.git
 cd team-campusclaw
-openspec validate 2026-10-28-team-project-kickoff --strict
-git diff --check
+python3 scripts/dev_env.py
+# 在本机.env填写CHAT_BASE_URL、CHAT_API_KEY、CHAT_MODEL后启动
+docker compose --profile test up --build -d
+npm --prefix frontend ci
 ```
 
-现有能力、技术结构与工具准备见 [现有平台概况](docs/platform-overview.md)。运行验收以 [运行底座规约](openspec/changes/2026-10-28-team-project-kickoff/specs/team-runtime-foundation/spec.md) 为准。
+打开 <http://127.0.0.1:18080>。账号：教师`teacher_a`、学生`student_a1`/`student_a2`（班级A），学生`student_b1`（班级B）。教师和学生口令分别读取本机`.env`中的`SEED_TEACHER_PASSWORD`、`SEED_STUDENT_PASSWORD`；不要提交或公开口令。
 
-## 用户与场景
+脚本只在文件不存在时生成`.env`和`.secrets/mysql-root`，已有配置原样保留。保留与数据卷配套的凭据；模型密钥仅在服务端。初判预算默认60秒，租约70秒；检索的嵌入模型单独配置，参数见[配置字典](docs/configuration.md)。
 
-| 用户 | 教学任务 | 能力与页面规划 |
-| --- | --- | --- |
-| 教师 | 整理本班资料、配置智能体与技能 | 复用现有资料、智能体、技能与 MCP 工作区 |
-| 教师 | 备课、命题、诊断与组织互评 | 七项扩展按后续 change 逐项交付 |
-| 学生 | 本班资料检索、智能体学习、回看出处 | 复用资料库、知识问答、会话能力 |
-| 学生 | 讲题、复习、练习与互评 | 依据各模块规约校验身份、流程和结果 |
+演示：教师在“作业发布与批改”选择学科，点击“发布作业”填写题目、参考答案及满分；选中作业可查看详情，点击“批改作业”查看学生提交并确认分数和对错。学生在“提交作业”按学科作答，在“我的错题”查看有效错题并点击“错题讲解”；刷新可恢复本人记录，学生题目页不显示参考答案。
+
+## 检查
+
+自动回归使用独立的18081与测试数据卷。前端依赖安装后执行：
+
+```bash
+python3 scripts/dev_env.py --test
+docker compose --env-file .env.test --profile test up --build -d
+COMPOSE_ENV_FILES=.env.test make check
+make precheck
+COMPOSE_ENV_FILES=.env.test make check-security
+```
+
+`make check`依次运行Go检查、前端构建及行为测试、OpenSpec、接口文档一致性、异步回归和资产门禁。接口用例仅接受`.env.test`中的`campusclaw-team-test`、18081及本地网关，停启与故障注入不影响18080的运行数据。
+
+若本机 npm 镜像站审计请求失败，可仅在检查命令前加 `npm_config_registry=https://registry.npmjs.org`，不修改全局配置。
+
+真实模型评测显式运行`python3 apitest/evaluate_model.py --live`，会调用本机配置的模型处理20条固定合成题；普通自动回归使用替身。
+
+当前功能回归通过；资产门禁因依赖风险返回非零，`make precheck`因教学技能审计字段缺口返回非零。实际红项与处置范围见[安全自查](reports/security-precheck.md)和[资产基线](reports/security-baseline.md)，不能把登记风险当作检查通过。
+
+- [异步响应与页面验证](reports/async-response.md)
+- [权限](reports/risk-authz.md)、[并发](reports/risk-concurrency.md)、[事务](reports/risk-transaction.md)复现
+- [评审状态](reports/review-01.md)：已追加张海峰独立复测；非作者人工评审、异机启动与主干保护待完成，之后再合入、归档和标记版本。
+
+运行接口文档：<http://127.0.0.1:18080/swagger/index.html>，OpenAPI原文在同目录`openapi.json`。`/live`检查进程，`/health`聚合数据库、向量库及MCP服务就绪，不发起计费生成。
 
 ## 小组分工
 
@@ -46,21 +68,10 @@ git diff --check
 
 ## 开发流程
 
-- 主干为 `main`，合并保护见[仓库设置](docs/lesson-07/repository-settings.md)。
-- 变更名采用 `YYYY-MM-DD-kebab-case`，开发分支默认使用 `codex/<change>`。
-- 按 Propose → Review → Apply → Verify → Archive 推进；一次实现一个 task，运行 verify 后勾选并提交。
-- 提交信息包含 `Change:`、`Verify:`、`Evidence:`；合并前完成非作者评审。
-- 按分工认领变更、提交成果并参与交叉评审，保留各自的协作记录。
+从[AGENTS.md](AGENTS.md)加载规则，按OpenSpec的Propose → Review → Apply → Verify → Archive推进。一次实现一个task，实际运行verify后勾选并提交；提交说明保留必要的Change、Verify、Evidence。开发分支使用`codex/<change>`，通过PR进行非作者评审，不代他人署名。
 
-## Harness 入口
+- [架构与目录](docs/architecture.md) · [配置](docs/configuration.md) · [数据字典](docs/data-dictionary.md)
+- [异步批改规约](openspec/changes/2026-11-04-async-grading/specs/async-homework-grading/spec.md)
+- [仓库合并设置](docs/lesson-07/repository-settings.md)
 
-Codex 从 [AGENTS.md](AGENTS.md) 读取开工规则，再按其中的加载矩阵读取 `harness/rules/`。流程技能在 `.agents/skills/`，包含 OpenSpec 工作流和项目技能。规划使用 `$openspec-propose`，校验使用 `$campusclaw-validate-change`，实现和归档分别使用 `$openspec-apply-change`、`$openspec-archive-change`。
-
-## 导航与许可
-
-- [功能扩展规划](docs/project-brief.md)
-- [目录、分层与未来运行骨架](docs/architecture.md)
-- [配置字典与密钥轮换](docs/configuration.md)
-- [第7课提交证据](docs/lesson-07/verification.md)
-
-沿用仓库现有 [MIT License](LICENSE)。复用与扩展代码时保留适用的版权和许可。
+沿用[MIT License](LICENSE)，保留适用的版权和许可。

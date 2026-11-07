@@ -4,6 +4,7 @@ context: |
   规划扩展为备课、命题、诊断、图谱、间隔复习、讲题模拟、学生互评。
   七项扩展保留为候选，首轮业务迭代待评审确定；不得自行指定优先级或把候选写成已实现。
   在现有平台上增量开发，当前能力见 docs/platform-overview.md。
+  作业批改按2026-11-04-async-grading新增独立异步链路，实际检查与待评审项见reports。
   沿用 React/TypeScript、Go、MySQL、Qdrant、SSE、MCP 与 Docker Compose；以平台实现为事实，保持接口与错误契约一致。
   身份、角色、班级归属由 Go 服务端重新读取；跨班资源与不存在同形 404；口令 bcrypt；机密仅来自环境变量。
   规范以 AGENTS.md 和 harness/rules/ 为准，流程技能在 .agents/skills/。

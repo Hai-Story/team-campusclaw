@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+.secrets
+**/node_modules
+**/dist
+**/uploads
+output
+reports
+**/*.log
+**/*.pdf
+**/*.ttf
+**/*.woff*
