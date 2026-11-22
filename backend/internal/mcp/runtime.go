@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"campusclaw/backend/internal/auditlog"
 	"campusclaw/backend/internal/auth"
 	"context"
 	"database/sql"
@@ -81,6 +82,7 @@ func (m *Manager) Used(ctx context.Context, conversation int64) (int, error) {
 	return n, e
 }
 func (m *Manager) Record(ctx context.Context, u auth.User, conversation, requestID int64, c Candidate, round int, status, text string) (Call, error) {
+	auditlog.Tool(ctx, status)
 	result := Call{Ref: c.Ref, Status: status, Text: text, Round: round, ServerName: c.ServerName, UserID: u.ID, ConversationID: conversation, RequestID: requestID}
 	if c.ServerID == 0 {
 		return result, nil

@@ -199,7 +199,10 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 				writeJSON(w, 503, map[string]string{"error": "审计服务暂不可用，请稍后重试"})
 				return
 			}
-
+			if !sameOriginWrite(r) {
+				writeJSON(w, 403, map[string]string{"error": "请求来源无效，请从班级页面重试"})
+				return
+			}
 		}
 		_, _ = s.DB.Exec(`DELETE FROM sessions WHERE id = ?`, s.tokenKey(t))
 	}
@@ -242,7 +245,10 @@ func (s *Service) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			writeJSON(w, 503, map[string]string{"error": "审计服务暂不可用，请稍后重试"})
 			return
 		}
-
+		if !sameOriginWrite(r) {
+			writeJSON(w, 403, map[string]string{"error": "请求来源无效，请从班级页面重试"})
+			return
+		}
 		observability.Identity(r.Context(), u.ID)
 		next(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, u)))
 	}
