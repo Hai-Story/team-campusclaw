@@ -2,6 +2,7 @@ package retrieval
 
 import (
 	"bytes"
+	"campusclaw/backend/internal/observability"
 	"context"
 	"encoding/json"
 	"errors"
@@ -27,7 +28,7 @@ type ToolCall struct {
 }
 
 // DecideTools asks the real model to choose a tool and its arguments. Final prose is streamed separately.
-func (c *ChatClient) DecideTools(ctx context.Context, messages []ChatMessage, tools []ToolDefinition) (ChatMessage, error) {
+func (c *ChatClient) DecideTools(ctx context.Context, messages []ChatMessage, tools []ToolDefinition) (result ChatMessage, err error) {
 	in := map[string]any{"model": c.Model, "messages": messages, "tools": tools, "tool_choice": "auto", "parallel_tool_calls": false, "max_tokens": 700, "temperature": 0.2, "stream": false}
 	b, e := json.Marshal(in)
 	if e != nil {
@@ -39,6 +40,9 @@ func (c *ChatClient) DecideTools(ctx context.Context, messages []ChatMessage, to
 	}
 	req.Header.Set("Authorization", "Bearer "+c.APIKey)
 	req.Header.Set("Content-Type", "application/json")
+	ctx, callID := observability.Begin(ctx, c.Model, "tool-planning")
+	req = req.WithContext(ctx)
+	defer func() { observability.End(ctx, callID, err) }()
 	res, e := httpClient.Do(req)
 	traceHTTP(ctx, "tool-planning", b, res, e)
 	if e != nil {
@@ -54,6 +58,7 @@ func (c *ChatClient) DecideTools(ctx context.Context, messages []ChatMessage, to
 		return ChatMessage{}, errors.New("工具规划响应超限或中断")
 	}
 	var out struct {
+		Usage   json.RawMessage `json:"usage"`
 		Choices []struct {
 			Message ChatMessage `json:"message"`
 		} `json:"choices"`
@@ -61,6 +66,7 @@ func (c *ChatClient) DecideTools(ctx context.Context, messages []ChatMessage, to
 	if json.Unmarshal(data, &out) != nil || len(out.Choices) != 1 || len(out.Choices[0].Message.ToolCalls) > 16 {
 		return ChatMessage{}, errors.New("工具规划响应无效")
 	}
+	observability.Usage(ctx, out.Usage)
 	m := out.Choices[0].Message
 	m.Role = "assistant"
 	if len(m.Content) > 8000 {

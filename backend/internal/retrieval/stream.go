@@ -3,6 +3,7 @@ package retrieval
 import (
 	"bufio"
 	"bytes"
+	"campusclaw/backend/internal/observability"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,14 +14,17 @@ import (
 )
 
 // Stream passes actual gateway deltas through; never splits a completed answer.
-func (c *ChatClient) Stream(ctx context.Context, messages []ChatMessage, emit func(string) error) error {
-	body, _ := json.Marshal(map[string]any{"model": c.Model, "messages": messages, "temperature": 0.2, "max_tokens": 500, "stream": true})
+func (c *ChatClient) Stream(ctx context.Context, messages []ChatMessage, emit func(string) error) (err error) {
+	body, _ := json.Marshal(map[string]any{"model": c.Model, "messages": messages, "temperature": 0.2, "max_tokens": 500, "stream": true, "stream_options": map[string]any{"include_usage": true}})
 	req, e := http.NewRequestWithContext(ctx, "POST", c.BaseURL+"/chat/completions", bytes.NewReader(body))
 	if e != nil {
 		return e
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.APIKey)
+	ctx, callID := observability.Begin(ctx, c.Model, "final-stream")
+	req = req.WithContext(ctx)
+	defer func() { observability.End(ctx, callID, err) }()
 	res, e := httpClient.Do(req)
 	traceHTTP(ctx, "final-stream", body, res, e)
 	if e != nil {
@@ -61,6 +65,7 @@ func (c *ChatClient) Stream(ctx context.Context, messages []ChatMessage, emit fu
 		if len(frame.Error) > 0 && string(frame.Error) != "null" {
 			return errors.New("对话流返回错误")
 		}
+		observability.Usage(ctx, frame.Usage)
 		if len(frame.Choices) > 0 {
 			traceDelta(ctx, frame.Choices[0].Delta.Content, frame.Choices[0].FinishReason, frame.Usage)
 		} else {

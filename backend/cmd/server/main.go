@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"campusclaw/backend/internal/apidocs"
+	"campusclaw/backend/internal/auditlog"
 	"campusclaw/backend/internal/auth"
 	"campusclaw/backend/internal/config"
 	"campusclaw/backend/internal/curriculum"
@@ -66,6 +67,10 @@ func main() {
 	}
 	if err := curriculum.Migrate(d); err != nil {
 		log.Fatal("课程资源迁移失败")
+	}
+
+	if auditlog.Migrate(d) != nil {
+		log.Fatal("审计迁移失败")
 	}
 
 	authSvc := auth.NewService(d, cfg)
@@ -160,7 +165,7 @@ func main() {
 	mux.HandleFunc("GET /api/mcp/tool-calls", dbGuard(authSvc.Middleware(auth.RequireTeacher(mcpSvc.Calls))))
 
 	log.Printf("CampusClaw api 监听 :%s", cfg.Port)
-	server := &http.Server{Addr: ":" + cfg.Port, Handler: runtimehttp.Middleware(mux), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
+	server := &http.Server{Addr: ":" + cfg.Port, Handler: runtimehttp.Middleware(mux, &auditlog.Store{DB: d}), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	go func() {
