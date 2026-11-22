@@ -28,8 +28,16 @@
 | tutor | Tutor.tsx | 学生 |
 | homework | Homework.tsx | 教师按学科发布、审阅与终评，学生提交及查看本人结果；A1/A4/A7/A8/A9 |
 | mistakes | Mistakes.tsx | 学生查看本人分学科有效错题；A7/A8/A9 |
+| knowledge | KnowledgePoints.tsx | 两端本班知识点，教师维护、学生收藏；K1/K2/K3 |
+| lesson | LessonPlans.tsx | 教师本人私有备课；L1/L2/L3/L4 |
+| walk | Walkthroughs.tsx | 学生本人分阶段讲题与恢复；W1/W2/W3/W4 |
+| graph | KnowledgeGraph.tsx | 两端正式图谱，教师维护及私有候选审核；G1/G2/G3/G4 |
+| bank | QuestionBank.tsx | 教师私有命题、题库与试卷草稿；B1/B2/B3/B4 |
+| papers | Papers.tsx | 本班多题发布/整卷提交、逐题初判与终评、总分及扩展跳转；M1/M2/M3/M4 |
+| review | Reviews.tsx | 学生个人复习、间隔与完成历史；R1/R2/R3 |
+| diagnosis | LearningDiagnosis.tsx | 两端正式学情统计、教师确认错因与作答回查；D1/D2/D3/D4 |
 
-这张表描述现有入口，迁移时再核对。七项扩展的页面/路由由各 change 单独增加。
+这张表描述现有入口，迁移时再核对。扩展入口由对应 change 维护。
 
 ## 状态文案与术语
 
