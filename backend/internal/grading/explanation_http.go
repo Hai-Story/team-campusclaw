@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"time"
 )
 
-// @api {"method":"POST","path":"/api/submissions/{id}/explanation","summary":"为本人当前错题生成讲解","auth":"student","status":200,"request":{"type":"object","additionalProperties":false},"response":{"type":"object","required":["explanation"],"additionalProperties":false,"properties":{"explanation":{"type":"string","minLength":1,"maxLength":1500}}},"errors":{"400":"请求参数非法","401":"需要登录","403":"仅学生可用","404":"资源不存在","409":"错题已更新，请刷新","413":"请求过大","415":"请使用application/json","429":"讲解正在生成，请稍后重试","503":"讲解暂时无法生成，请稍后重试"}}
+// @api {"method":"POST","path":"/api/submissions/{id}/explanation","summary":"为本人当前错题生成讲解","auth":"student","status":200,"request":{"type":"object","additionalProperties":false},"response":{"type":"object","required":["explanation","status","citations"],"additionalProperties":false,"properties":{"explanation":{"type":"string","minLength":1,"maxLength":1500},"status":{"type":"string","enum":["generated","insufficient_evidence"]},"citations":{"type":"array","items":{"type":"object","required":["index","material_id","chunk_id","excerpt"],"properties":{"index":{"type":"integer"},"material_id":{"type":"integer"},"chunk_id":{"type":"integer"},"chunk_index":{"type":"integer"},"char_start":{"type":"integer"},"char_end":{"type":"integer"},"material_title":{"type":"string"},"excerpt":{"type":"string"}}}}}},"errors":{"400":"请求参数非法","401":"需要登录","403":"仅学生可用","404":"资源不存在","409":"错题已更新，请刷新","413":"请求过大","415":"请使用application/json","429":"讲解正在生成，请稍后重试","503":"讲解暂时无法生成，请稍后重试"}}
 func (s *Service) Explanation(w http.ResponseWriter, r *http.Request) {
 	u, ok := actor(w, r, "student")
 	if !ok {
@@ -44,23 +45,43 @@ func (s *Service) Explanation(w http.ResponseWriter, r *http.Request) {
 	s.explanationMu.Unlock()
 	defer func() { s.explanationMu.Lock(); delete(s.explanations, u.ID); s.explanationMu.Unlock() }()
 	start := time.Now()
-	budget := s.Model.Timeout
-	if budget > time.Minute {
-		budget = time.Minute
-	}
-	ctx, cancel := context.WithTimeout(r.Context(), budget)
+	ctx, cancel := context.WithTimeout(r.Context(), 121*time.Second)
 	defer cancel()
-	text, usage, modelFailure := Explain(ctx, s.Model, work)
-	status := "succeeded"
-	if modelFailure != nil {
-		status = "failed"
-	}
-	if r.Context().Err() != nil {
-		status = "cancelled"
-	}
+	refs := []ExplanationCitation{}
+	status := "failed"
+	var usage Usage
 	defer func() {
-		event("grading", "explanation", map[string]any{"actor_id": u.ID, "submission_id": id, "skill_id": ExplanationVersion, "status": status, "duration_ms": time.Since(start).Milliseconds(), "usage": usage, "model": s.Model.Model})
+		if r.Context().Err() != nil {
+			status = "cancelled"
+		}
+		event("grading", "explanation", map[string]any{"actor_id": u.ID, "submission_id": id, "skill_id": ExplanationVersion, "status": status, "duration_ms": time.Since(start).Milliseconds(), "usage": usage, "model": s.Model.Model, "hit_count": len(refs)})
 	}()
+	if s.Searcher == nil {
+		write(w, 503, map[string]string{"error": "资料检索暂时不可用，请稍后重试"})
+		return
+	}
+	ids, err := s.Store.ExplanationMaterials(ctx, work)
+	if err != nil {
+		failure(w, err)
+		return
+	}
+	hits, err := s.Searcher.SearchBound(ctx, u.ClassID, work.Question, ids, 4)
+	if err != nil {
+		write(w, 503, map[string]string{"error": "资料检索暂时不可用，请稍后重试"})
+		return
+	}
+	refs, err = s.Store.ExplanationEvidence(ctx, work, hits)
+	if err != nil {
+		failure(w, err)
+		return
+	}
+	if len(refs) == 0 {
+		status = "insufficient_evidence"
+		write(w, 200, ExplanationResponse{Explanation: "本班资料中未找到足够依据，请联系教师补充相关资料后重试。", Status: status, Citations: []ExplanationCitation{}})
+		return
+	}
+	result, used, modelFailure := ExplainEvidence(ctx, s.Model, work, refs)
+	usage = used
 	if r.Context().Err() != nil {
 		return
 	}
@@ -68,14 +89,26 @@ func (s *Service) Explanation(w http.ResponseWriter, r *http.Request) {
 		write(w, 503, map[string]string{"error": "讲解暂时无法生成，请稍后重试"})
 		return
 	}
-	if _, err = s.Store.Mistake(r.Context(), u.ClassID, u.ID, id); err != nil {
+	current, err := s.Store.Mistake(r.Context(), u.ClassID, u.ID, id)
+	if err != nil || current != work {
 		status = "stale"
-		if err == ErrNotFound {
-			write(w, 409, map[string]string{"error": "错题已更新，请刷新"})
-		} else {
+		if err != nil && err != ErrNotFound {
 			failure(w, err)
+		} else {
+			write(w, 409, map[string]string{"error": "错题已更新，请刷新"})
 		}
 		return
 	}
-	write(w, 200, map[string]string{"explanation": text})
+	currentRefs, err := s.Store.ExplanationEvidence(r.Context(), work, hits)
+	if err != nil || !reflect.DeepEqual(refs, currentRefs) {
+		status = "stale"
+		if err != nil && err != ErrConflict {
+			failure(w, err)
+		} else {
+			write(w, 409, map[string]string{"error": "资料已更新，请重新生成讲解"})
+		}
+		return
+	}
+	status = "succeeded"
+	write(w, 200, result)
 }

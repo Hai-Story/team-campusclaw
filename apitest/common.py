@@ -22,13 +22,13 @@ class Context:
     def sql(self,query):
         result=self.compose('exec','-T','db','sh','-c','MYSQL_PWD="$MYSQL_PASSWORD" exec mysql --default-character-set=utf8mb4 --batch --raw --skip-column-names -u "$MYSQL_USER" "$MYSQL_DATABASE"',input=query)
         return [line.split('\t') for line in result.splitlines() if line]
-    def request(self,path,body=None,who='student',method=None,headers=None):
+    def request(self,path,body=None,who='student',method=None,headers=None,timeout=10):
         h={'Content-Type':'application/json',**(headers or {})}
         if who:h['Authorization']='Bearer '+self.token(who)
         req=urllib.request.Request(self.base+path,data=None if body is None else json.dumps(body,ensure_ascii=False).encode(),headers=h,method=method or ('POST' if body is not None else 'GET'))
         start=time.monotonic()
         try:
-            with urllib.request.urlopen(req,timeout=10) as response:code=response.status;raw=response.read();response_headers=dict(response.headers)
+            with urllib.request.urlopen(req,timeout=timeout) as response:code=response.status;raw=response.read();response_headers=dict(response.headers)
         except urllib.error.HTTPError as error:code=error.code;raw=error.read();response_headers=dict(error.headers)
         try:data=json.loads(raw) if raw else None
         except ValueError:data=raw.decode(errors='replace')

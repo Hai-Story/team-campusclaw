@@ -24,7 +24,7 @@ export const homework = {
   mine:(id:number,signal?:AbortSignal)=>request<Submission|null>(`/api/assignments/${id}/my-submission`,{signal}),
   submissions:(id:number,page:number,signal?:AbortSignal)=>request<Page<Submission>>(`/api/assignments/${id}/submissions?page=${page}`,{signal}),
   mistakes:(subject:Subject,page:number,signal?:AbortSignal)=>request<Page<Submission>>(`/api/mistakes?subject=${subject}&page=${page}`,{signal}),
-  explanation:(id:number,signal:AbortSignal)=>request<{explanation:string}>(`/api/submissions/${id}/explanation`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal}),
+  explanation:(id:number,signal:AbortSignal)=>request<{explanation:string;status:string;citations:Array<{index:number;material_id:number;material_title:string;chunk_index:number;char_start:number;char_end:number;excerpt:string}>}>(`/api/submissions/${id}/explanation`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal}),
   review:(id:number,input:{score:number;correct:boolean;feedback:string;expected_version:number})=>request<FinalReview>(`/api/submissions/${id}/review`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)}),
 }
 

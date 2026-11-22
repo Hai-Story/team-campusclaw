@@ -14,6 +14,7 @@ import (
 
 type Service struct {
 	Store         *Store
+	Searcher      ExplanationSearcher
 	Model         Settings
 	explanationMu sync.Mutex
 	explanations  map[int64]bool

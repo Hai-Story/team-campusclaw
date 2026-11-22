@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const ExplanationVersion = "mistake-explanation-v1"
+const ExplanationVersion = "mistake-explanation-v3"
 
 var numberToken = regexp.MustCompile(`[-+−]?\d+(?:\.\d+)?`)
 var finalAnswerPhrase = regexp.MustCompile(`正确答案|最终答案|答案[为:：]|最终结果[是为:：]`)

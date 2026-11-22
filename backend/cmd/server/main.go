@@ -112,7 +112,7 @@ func main() {
 	mux := http.NewServeMux()
 	apidocs.Mount(mux)
 	runtimehttp.Probes(mux, d, cfg.Version, cfg.QdrantURL, strings.Split(os.Getenv("MCP_ALLOWED_BASE_URLS"), ",")[0])
-	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}, Model: gradeSettings}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
+	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}, Model: gradeSettings, Searcher: retrievalSvc.Searcher}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 	curriculum.Mount(mux, &curriculum.Service{Store: &curriculum.Store{DB: d}, Searcher: retrievalSvc.Searcher, Generator: &curriculum.ChatGenerator{BaseURL: cfg.ChatBaseURL, APIKey: cfg.ChatAPIKey, Model: cfg.ChatModel}, ModelName: cfg.ChatModel}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 
 	mux.HandleFunc("POST /api/login", dbGuard(authSvc.Login))

@@ -1946,7 +1946,9 @@
                 "schema": {
                   "type": "object",
                   "required": [
-                    "explanation"
+                    "explanation",
+                    "status",
+                    "citations"
                   ],
                   "additionalProperties": false,
                   "properties": {
@@ -1954,6 +1956,51 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 1500
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "generated",
+                        "insufficient_evidence"
+                      ]
+                    },
+                    "citations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "index",
+                          "material_id",
+                          "chunk_id",
+                          "excerpt"
+                        ],
+                        "properties": {
+                          "index": {
+                            "type": "integer"
+                          },
+                          "material_id": {
+                            "type": "integer"
+                          },
+                          "chunk_id": {
+                            "type": "integer"
+                          },
+                          "chunk_index": {
+                            "type": "integer"
+                          },
+                          "char_start": {
+                            "type": "integer"
+                          },
+                          "char_end": {
+                            "type": "integer"
+                          },
+                          "material_title": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
                 }

@@ -22,6 +22,6 @@ def main():
     if not results:raise SystemExit('没有匹配的用例')
     out=ROOT/'output';out.mkdir(exist_ok=True)
     evidence={'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip(),'worktree_changed':bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT).strip()),'scope':'隔离MySQL、RabbitMQ与本地网关替身','results':results}
-    (out/('checks-'+(args.case or 'all')+'.json')).write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n')
+    (out/('checks-'+(args.case.replace('/','-') or 'all')+'.json')).write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n')
     return 1 if any(item['status']=='FAIL' for item in results) else 0
 if __name__=='__main__':sys.exit(main())

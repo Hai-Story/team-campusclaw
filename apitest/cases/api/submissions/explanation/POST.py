@@ -25,26 +25,44 @@ def run(c):
     for body in [{'question':'forged'},{'answer':'2'},{'class_id':1},[]]:assert c.request(path,body)[0]==400
     assert stats(c)['calls']==0
     before=c.sql(f'SELECT answer,updated_at FROM submissions WHERE id={sid};')
-    code,data,_,_=c.request(path,{});assert code==200 and set(data)=={'explanation'} and data['explanation']
+    code,data,_,_=c.request(path,{},timeout=130);assert code==200 and set(data)=={'explanation','status','citations'} and data['status']=='generated' and data['citations'] and data['explanation']
     assert c.sql(f'SELECT answer,updated_at FROM submissions WHERE id={sid};')==before
-    for response in [{'explanation':'结果为2。'},{'explanation':'回想定义。','score':10},{'explanation':''}]:
-        c.control(explanation_response=response);assert c.request(path,{})[0]==503
-    c.control(statuses=[503]);assert c.request(path,{})[0]==503
-    assert stats(c)['calls']==1
+    for response in [{'explanation':'结果为2。'},{'explanation':'回想定义。','score':10},{'explanation':''},{'explanation':'回想定义。','citation_indices':[999]}]:
+        c.control(explanation_response=response);assert c.request(path,{},timeout=130)[0]==503
+    c.control(statuses=[503,503]);assert c.request(path,{},timeout=130)[0]==503
+    assert stats(c)['calls']==2
     c.control(hold_explanation=True)
     with ThreadPoolExecutor(max_workers=1) as pool:
-        first=pool.submit(c.request,path,{});started(c)
-        second=c.request(path,{});assert second[0]==429 and second[3].get('Retry-After')=='2'
+        first=pool.submit(c.request,path,{},timeout=130);started(c)
+        second=c.request(path,{},timeout=130);assert second[0]==429 and second[3].get('Retry-After')=='2'
         release(c)
         assert first.result()[0]==200
     assert stats(c)['calls']==1
+    # E2: source invalidated during generation never returns a successful explanation.
     c.control(hold_explanation=True)
     with ThreadPoolExecutor(max_workers=1) as pool:
-        pending=pool.submit(c.request,path,{});started(c)
+        pending=pool.submit(c.request,path,{},timeout=130);started(c)
+        chunk=data['citations'][0]['chunk_id']
+        old=c.sql(f'SELECT HEX(chunk_text) FROM knowledge_chunks WHERE id={chunk}')[0][0]
+        try:
+            c.sql(f"UPDATE knowledge_chunks SET chunk_text='changed source' WHERE id={chunk}")
+            release(c);assert pending.result()[0]==409
+        finally:c.sql(f"UPDATE knowledge_chunks SET chunk_text=UNHEX('{old}') WHERE id={chunk}")
+    c.control()
+    ready=c.sql("SELECT id FROM knowledge_chunks WHERE index_status='ready'")
+    try:
+        c.sql("UPDATE knowledge_chunks SET index_status='pending' WHERE index_status='ready'")
+        nohit=c.request(path,{},timeout=130)
+        assert nohit[0]==200 and nohit[1]['status']=='insufficient_evidence' and nohit[1]['citations']==[] and stats(c)['calls']==0
+    finally:
+        if ready:c.sql("UPDATE knowledge_chunks SET index_status='ready' WHERE id IN ("+','.join(row[0] for row in ready)+')')
+    c.control(hold_explanation=True)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        pending=pool.submit(c.request,path,{},timeout=130);started(c)
         assert c.request(f'/api/submissions/{sid}/review',{'score':5,'correct':True,'expected_version':0},who='teacher',method='PUT')[0]==200
         release(c)
         assert pending.result()[0]==409
-    c.control();assert c.request(path,{})[0]==404 and stats(c)['calls']==0
+    c.control();assert c.request(path,{},timeout=130)[0]==404 and stats(c)['calls']==0
     assert c.request(f'/api/submissions/{sid}/review',{'score':0,'correct':False,'expected_version':1},who='teacher',method='PUT')[0]==200
     c.control(hold_explanation=True)
     target=urllib.parse.urlsplit(c.base);connection=http.client.HTTPConnection(target.hostname,target.port)
@@ -55,9 +73,9 @@ def run(c):
     assert stats(c)['cancelled']==1
     c.control(hold_explanation=True)
     with ThreadPoolExecutor(max_workers=1) as pool:
-        pending=pool.submit(c.request,path,{});started(c);new=c.submit(aid,answer='3')[1]
+        pending=pool.submit(c.request,path,{},timeout=130);started(c);new=c.submit(aid,answer='3')[1]
         release(c)
         assert pending.result()[0]==409
-    assert c.request(path,{})[0]==404
+    assert c.request(path,{},timeout=130)[0]==404
     c.wait(new['task_id']);c.control()
     return {'ownership':'401/403/404, no model calls','valid':200,'invalid_output':503,'concurrent':[200,429],'teacher_changed':409,'new_attempt':409,'cancelled':1,'submission':'unchanged'}

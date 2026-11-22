@@ -13,7 +13,7 @@ import (
 
 const VerdictVersion = "grading-verdict-v3"
 
-//go:embed prompts/verdict-v3.txt prompts/explanation-v1.txt
+//go:embed prompts/verdict-v3.txt prompts/explanation-v1.txt prompts/explanation-v3.txt
 var promptFiles embed.FS
 
 func Feedback(ctx context.Context, c Settings, work Work) (Result, Usage, *GradeError) {

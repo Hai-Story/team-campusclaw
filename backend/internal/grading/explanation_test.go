@@ -1,6 +1,7 @@
 package grading
 
 import (
+	"campusclaw/backend/internal/retrieval"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -15,9 +16,12 @@ func TestExplanationContracts(t *testing.T) {
 		name, content string
 		valid         bool
 	}{
-		{"hint", `{"explanation":"回想相反数的定义，检查符号与绝对值是否满足要求。"}`, true},
-		{"answer", `{"explanation":"相反数为3。"}`, false},
-		{"decimal_answer", `{"explanation":"结果为+3.0。"}`, false},
+		{"hint", `{"explanation":"回想相反数的定义，检查符号与绝对值是否满足要求。","citation_indices":[1]}`, true},
+		{"answer", `{"explanation":"相反数为3。","citation_indices":[1]}`, false},
+		{"decimal_answer", `{"explanation":"结果为+3.0。","citation_indices":[1]}`, false},
+		{"forged_ref", `{"explanation":"回顾定义。","citation_indices":[99]}`, false},
+		{"duplicate_ref", `{"explanation":"回顾定义。","citation_indices":[1,1]}`, false},
+		{"no_ref", `{"explanation":"回顾定义。","citation_indices":[]}`, false},
 		{"extra", `{"explanation":"回想定义。","score":0}`, false},
 		{"empty", `{"explanation":" "}`, false},
 		{"two_objects", `{"explanation":"回想定义。"}{}`, false},
@@ -38,8 +42,8 @@ func TestExplanationContracts(t *testing.T) {
 				json.NewEncoder(w).Encode(map[string]any{"choices": []any{map[string]any{"message": map[string]string{"content": tc.content}}}})
 			}))
 			defer server.Close()
-			text, _, err := Explain(context.Background(), Settings{ChatURL: server.URL}, Work{Expected: "3", Subject: "math", Question: "相反数", Answer: "-3"})
-			if (err == nil) != tc.valid || (tc.valid && text == "") {
+			text, _, err := ExplainEvidence(context.Background(), Settings{ChatURL: server.URL}, Work{Expected: "3", Subject: "math", Question: "相反数", Answer: "-3"}, []ExplanationCitation{{1, retrieval.Hit{MaterialID: 1, ChunkID: 1, MaterialTitle: "数学", Excerpt: "相反数的概念。"}}})
+			if (err == nil) != tc.valid || (tc.valid && text.Explanation == "") {
 				t.Fatalf("unexpected acceptance: %v", err)
 			}
 		})
@@ -58,5 +62,14 @@ func TestReferenceAnswerGuard(t *testing.T) {
 		if revealsAnswer(tc.text, tc.ref) != tc.blocked {
 			t.Errorf("incorrect answer guard: %s", tc.text)
 		}
+	}
+}
+
+func TestExplanationSafeSources(t *testing.T) {
+	// E1/E2: canonical metadata retained, source answer content hidden.
+	refs := []ExplanationCitation{{1, retrieval.Hit{MaterialID: 7, ChunkID: 8, MaterialTitle: "答案是3", Excerpt: "正确答案是3"}}}
+	safe := safeExplanationSources(refs, "3")
+	if revealsAnswer(safe[0].MaterialTitle, "3") || revealsAnswer(safe[0].Excerpt, "3") || safe[0].MaterialID != 7 || refs[0].Excerpt != "正确答案是3" {
+		t.Fatal(safe)
 	}
 }
