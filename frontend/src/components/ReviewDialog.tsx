@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { homework, type Submission } from '../grading'
+import { homework,errorTagLabels, type Submission } from '../grading'
 import { ResultPanel } from './HomeworkParts'
 import Icon from './Icon'
 
@@ -8,6 +8,7 @@ export default function ReviewDialog({submission,reference,onClose,onSaved}:{sub
  const [score,setScore]=useState(submission.task.final_review?.score.toString()??'')
  const [correct,setCorrect]=useState<boolean|null>(submission.task.final_review?.correct??submission.task.result?.correct??null)
  const [feedback,setFeedback]=useState(submission.task.final_review?.feedback??'')
+ const [tags,setTags]=useState<string[]>(submission.task.final_review?.error_tags??[])
  const [saving,setSaving]=useState(false),[error,setError]=useState('')
  useEffect(()=>{
   const previous=document.activeElement as HTMLElement|null
@@ -26,7 +27,7 @@ export default function ReviewDialog({submission,reference,onClose,onSaved}:{sub
  async function save(event:FormEvent){
   event.preventDefault();if(correct===null||score==='')return
   setSaving(true);setError('')
-  try{await homework.review(submission.id,{score:Number(score),correct,feedback,expected_version:submission.task.review_version});onSaved()}
+  try{await homework.review(submission.id,{score:Number(score),correct,feedback,error_tags:correct?[]:tags,expected_version:submission.task.review_version});onSaved()}
   catch(e){setError(e instanceof Error?e.message:'终评保存失败，请重试')}
   finally{setSaving(false)}
  }
@@ -38,6 +39,7 @@ export default function ReviewDialog({submission,reference,onClose,onSaved}:{sub
     <label className="review-choice incorrect"><input type="radio" name="correct" required checked={correct===false} onChange={()=>setCorrect(false)}/><span>错误</span></label>
    </div></fieldset>
    <label>终评分数（满分 {submission.max_score}）<input type="number" required min={0} max={submission.max_score} step={1} value={score} disabled={saving} onChange={event=>setScore(event.target.value)}/></label>
+   {correct===false&&<fieldset disabled={saving}><legend>确认错因（选填）</legend><div className="error-tag-options">{Object.entries(errorTagLabels).filter(([k])=>k!=='unclassified').map(([key,label])=><label key={key}><input type="checkbox" checked={tags.includes(key)} onChange={e=>setTags(v=>e.target.checked?[...v,key]:v.filter(x=>x!==key))}/><span>{label}</span></label>)}</div></fieldset>}
    <label>终评评语（选填）<textarea rows={3} maxLength={2000} value={feedback} disabled={saving} onChange={event=>setFeedback(event.target.value)}/></label></div>
    {error&&<div className="form-error" role="alert"><p>{error}</p><p>若终评已更新，请关闭后刷新提交列表，再核对并保存。</p></div>}
   </div><footer className="editor-footer"><button type="button" disabled={saving} onClick={onClose}>取消</button><button className="primary" disabled={saving||correct===null||score===''}>{saving?'正在保存…':'确认终评'}</button></footer></form>

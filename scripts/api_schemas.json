@@ -753,6 +753,20 @@
       "reviewed_at": {
         "type": "string",
         "format": "date-time"
+      },
+      "error_tags": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "concept",
+            "calculation",
+            "reading",
+            "method",
+            "careless",
+            "other"
+          ]
+        }
       }
     }
   },
@@ -2246,6 +2260,274 @@
               }
             }
           }
+        }
+      }
+    }
+  },
+  "LearningStats": {
+    "type": "object",
+    "required": [
+      "samples",
+      "correct",
+      "score",
+      "max_score",
+      "score_percent",
+      "correct_percent"
+    ],
+    "properties": {
+      "samples": {
+        "type": "integer"
+      },
+      "correct": {
+        "type": "integer"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "max_score": {
+        "type": "integer"
+      },
+      "score_percent": {
+        "type": "number",
+        "nullable": true
+      },
+      "correct_percent": {
+        "type": "number",
+        "nullable": true
+      }
+    }
+  },
+  "DiagnosisSample": {
+    "type": "object",
+    "required": [
+      "submission_id",
+      "assignment_id",
+      "student_id",
+      "score",
+      "max_score",
+      "correct",
+      "review_version",
+      "error_tags",
+      "knowledge_point_ids"
+    ],
+    "properties": {
+      "submission_id": {
+        "type": "integer"
+      },
+      "assignment_id": {
+        "type": "integer"
+      },
+      "student_id": {
+        "type": "integer"
+      },
+      "student_name": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "max_score": {
+        "type": "integer"
+      },
+      "correct": {
+        "type": "boolean"
+      },
+      "review_version": {
+        "type": "integer"
+      },
+      "submitted_at": {
+        "type": "string"
+      },
+      "reviewed_at": {
+        "type": "string"
+      },
+      "question": {
+        "type": "string"
+      },
+      "answer": {
+        "type": "string"
+      },
+      "feedback": {
+        "type": "string"
+      },
+      "error_tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "DiagnosisReport": {
+    "type": "object",
+    "required": [
+      "samples",
+      "correct",
+      "score",
+      "max_score",
+      "score_percent",
+      "correct_percent",
+      "subject",
+      "from",
+      "to",
+      "timezone",
+      "fingerprint",
+      "student_count",
+      "page",
+      "page_size",
+      "total_evidence",
+      "students",
+      "points",
+      "trend",
+      "error_counts",
+      "evidence"
+    ],
+    "properties": {
+      "samples": {
+        "type": "integer"
+      },
+      "correct": {
+        "type": "integer"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "max_score": {
+        "type": "integer"
+      },
+      "score_percent": {
+        "type": "number",
+        "nullable": true
+      },
+      "correct_percent": {
+        "type": "number",
+        "nullable": true
+      },
+      "subject": {
+        "type": "string"
+      },
+      "from": {
+        "type": "string"
+      },
+      "to": {
+        "type": "string"
+      },
+      "timezone": {
+        "type": "string"
+      },
+      "fingerprint": {
+        "type": "string"
+      },
+      "student_count": {
+        "type": "integer"
+      },
+      "page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      },
+      "total_evidence": {
+        "type": "integer"
+      },
+      "students": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "samples": {
+              "type": "integer"
+            },
+            "correct": {
+              "type": "integer"
+            },
+            "score": {
+              "type": "integer"
+            },
+            "max_score": {
+              "type": "integer"
+            },
+            "score_percent": {
+              "type": "number",
+              "nullable": true
+            },
+            "correct_percent": {
+              "type": "number",
+              "nullable": true
+            }
+          }
+        }
+      },
+      "trend": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "samples": {
+              "type": "integer"
+            },
+            "correct": {
+              "type": "integer"
+            },
+            "score": {
+              "type": "integer"
+            },
+            "max_score": {
+              "type": "integer"
+            },
+            "score_percent": {
+              "type": "number",
+              "nullable": true
+            },
+            "correct_percent": {
+              "type": "number",
+              "nullable": true
+            }
+          }
+        }
+      },
+      "error_counts": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/DiagnosisSample"
         }
       }
     }

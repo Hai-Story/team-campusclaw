@@ -5,7 +5,8 @@ export { subjects } from './subjects.ts'
 export type { Subject } from './subjects.ts'
 export function readSubject(raw:string|null):Subject{return raw==='physics'||raw==='chemistry'?'science':subjects.some(x=>x.id===raw)?raw as Subject:'math'}
 export interface Assignment { id:number; subject:Subject; title:string; question:string; expected_answer?:string; max_score:number; created_at?:string }
-export interface FinalReview {score:number;max_score:number;correct:boolean;feedback:string;version:number;reviewed_at:string}
+export const errorTagLabels:Record<string,string>={concept:"概念理解",calculation:"计算运算",reading:"审题理解",method:"方法选择",careless:"细节疏漏",other:"其他",unclassified:"未标注"}
+export interface FinalReview {error_tags?:string[];score:number;max_score:number;correct:boolean;feedback:string;version:number;reviewed_at:string}
 export interface GradeTask {
   task_id:string; submission_id:number; status:'pending'|'running'|'succeeded'|'failed'; attempts:number; error?:string;
   result?:{correct:boolean;feedback:string}; final_review?:FinalReview;review_version:number
@@ -25,7 +26,7 @@ export const homework = {
   submissions:(id:number,page:number,signal?:AbortSignal)=>request<Page<Submission>>(`/api/assignments/${id}/submissions?page=${page}`,{signal}),
   mistakes:(subject:Subject,page:number,signal?:AbortSignal)=>request<Page<Submission>>(`/api/mistakes?subject=${subject}&page=${page}`,{signal}),
   explanation:(id:number,signal:AbortSignal)=>request<{explanation:string;status:string;citations:Array<{index:number;material_id:number;material_title:string;chunk_index:number;char_start:number;char_end:number;excerpt:string}>}>(`/api/submissions/${id}/explanation`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal}),
-  review:(id:number,input:{score:number;correct:boolean;feedback:string;expected_version:number})=>request<FinalReview>(`/api/submissions/${id}/review`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)}),
+  review:(id:number,input:{score:number;correct:boolean;feedback:string;expected_version:number;error_tags?:string[]})=>request<FinalReview>(`/api/submissions/${id}/review`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)}),
 }
 
 export async function submissionKey(user:number,assignment:number,answer:string,attempt:string):Promise<string>{

@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import json
 
 def run(c):
     # A7/A8/A10: real HTTP, class-scoped SQL state and append-only review versions.
@@ -78,5 +79,33 @@ def run(c):
     failed=c.assignment();r=c.submit(failed)[1];assert c.wait(r['task_id'])['status']=='failed'
     assert judge(r['submission_id'],False,0)[0]==200
     assert failed in mistakes()
+    # D1: head/history keep confirmed tags, old clients preserve wrong tags, correct reviews clear them.
+    sid=r['submission_id'];path=f'/api/submissions/{sid}/review'
+    payload={'score':0,'correct':False,'expected_version':1,'error_tags':['method','concept']}
+    tagged=c.request(path,payload,who='teacher',method='PUT');assert tagged[0]==200 and tagged[1]['error_tags']==['concept','method']
+    assert c.task(r['task_id'])['final_review']['error_tags']==['concept','method']
+    assert judge(sid,False,0,2)[1]['error_tags']==['concept','method']
+    before=c.sql(f'SELECT version,error_tags FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid}')
+    for tags in [['fake'],['concept','concept'],[''],[1]]:
+        assert c.request(path,{**payload,'expected_version':3,'error_tags':tags},who='teacher',method='PUT')[0]==400
+    assert c.request(path,{**payload,'expected_version':3,'correct':True},who='teacher',method='PUT')[0]==400
+    assert before==c.sql(f'SELECT version,error_tags FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid}')
+    c.sql('ALTER TABLE grade_review_history ADD COLUMN apitest_tag_required INT NOT NULL')
+    try:assert c.request(path,{**payload,'expected_version':3,'error_tags':['reading']},who='teacher',method='PUT')[0]==503
+    finally:c.sql('ALTER TABLE grade_review_history DROP COLUMN apitest_tag_required')
+    assert before==c.sql(f'SELECT version,error_tags FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid}')
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        tag_codes=list(pool.map(lambda tag:c.request(path,{**payload,'expected_version':3,'error_tags':[tag]},who='teacher',method='PUT')[0],['concept','reading']))
+    assert sorted(tag_codes)==[200,409]
+    assert judge(sid,True,10,4)[1]['error_tags']==[]
+    rows=c.sql(f'SELECT error_tags FROM grade_review_history WHERE submission_id={sid} ORDER BY version')
+    assert len(rows)==5 and json.loads(rows[1][0])==['concept','method'] and json.loads(rows[-1][0])==[]
+    c.compose('restart','api');c.compose('restart','api')
+    for _ in range(60):
+        try:
+            if c.request('/live',who=None)[0]==200:break
+        except Exception:pass
+        import time;time.sleep(.1)
+    assert c.task(r['task_id'])['final_review']['version']==5
     c.control(delay_ms=20,statuses=[])
-    return {'judgment_combinations':4,'concurrent_reviews':sorted(codes),'history_version':4,'history_rollback':'PASS','late_AI_override':'blocked','subject_isolation':'PASS','latest_attempt':'PASS','authorization':'403/404','AI_numeric_score':None}
+    return {'judgment_combinations':4,'concurrent_reviews':sorted(codes),'history_version':4,'history_rollback':'PASS','late_AI_override':'blocked','subject_isolation':'PASS','latest_attempt':'PASS','authorization':'403/404','AI_numeric_score':None,'confirmed_tags':'versioned/preserved/cleared; rollback; concurrent200/409; restart2'}

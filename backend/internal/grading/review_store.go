@@ -3,23 +3,42 @@ package grading
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"sort"
 	"strings"
 	"time"
 )
 
 var ErrInvalid = errors.New("invalid review")
 
+var ErrorTags = map[string]string{"concept": "概念理解", "calculation": "计算运算", "reading": "审题理解", "method": "方法选择", "careless": "细节疏漏", "other": "其他"}
+
+func ValidErrorTags(tags []string, correct bool) bool {
+	if len(tags) > 6 || (correct && len(tags) > 0) {
+		return false
+	}
+	seen := map[string]bool{}
+	for _, tag := range tags {
+		if _, ok := ErrorTags[tag]; !ok || seen[tag] {
+			return false
+		}
+		seen[tag] = true
+	}
+	return true
+}
+
 type ReviewInput struct {
-	Score           *int   `json:"score"`
-	Correct         *bool  `json:"correct"`
-	Feedback        string `json:"feedback"`
-	ExpectedVersion *int   `json:"expected_version"`
+	ErrorTags       []string `json:"error_tags"`
+	Score           *int     `json:"score"`
+	Correct         *bool    `json:"correct"`
+	Feedback        string   `json:"feedback"`
+	ExpectedVersion *int     `json:"expected_version"`
 }
 
 func (in *ReviewInput) Validate() bool {
 	in.Feedback = strings.TrimSpace(in.Feedback)
-	return in.Score != nil && *in.Score >= 0 && in.Correct != nil && in.ExpectedVersion != nil && *in.ExpectedVersion >= 0 && len([]rune(in.Feedback)) <= 2000
+	return (in.Correct == nil || ValidErrorTags(in.ErrorTags, *in.Correct)) && in.Score != nil && *in.Score >= 0 && in.Correct != nil && in.ExpectedVersion != nil && *in.ExpectedVersion >= 0 && len([]rune(in.Feedback)) <= 2000
 }
 
 type SubmissionView struct {
@@ -37,7 +56,7 @@ type SubmissionView struct {
 	Task         Task      `json:"task"`
 }
 
-const taskColumns = `t.task_id,t.submission_id,t.status,t.attempts,t.error,t.started_at,t.finished_at,r.ai_correct,r.feedback,f.score,f.max_score,f.correct,f.feedback,f.version,f.updated_at`
+const taskColumns = `t.task_id,t.submission_id,t.status,t.attempts,t.error,t.started_at,t.finished_at,r.ai_correct,r.feedback,f.score,f.max_score,f.correct,f.feedback,f.version,f.updated_at,f.error_tags`
 const taskJoins = ` FROM grade_tasks t JOIN submissions s ON s.id=t.submission_id JOIN grade_assignments a ON a.id=s.assignment_id AND a.class_id=s.class_id LEFT JOIN grade_results r ON r.idempotency_key=t.idempotency_key LEFT JOIN grade_reviews f ON f.submission_id=s.id AND f.class_id=s.class_id `
 const latestSubmission = `NOT EXISTS(SELECT 1 FROM submissions newer WHERE newer.student_id=s.student_id AND newer.assignment_id=s.assignment_id AND newer.id>s.id)`
 
@@ -47,12 +66,19 @@ type taskFields struct {
 	ai, final               sql.NullBool
 	feedback, finalFeedback sql.NullString
 	score, max, version     sql.NullInt64
+	tags                    []byte
 }
 
 func (v *taskFields) targets() []any {
-	return []any{&v.task.TaskID, &v.task.SubmissionID, &v.task.Status, &v.task.Attempts, &v.task.Error, &v.start, &v.finish, &v.ai, &v.feedback, &v.score, &v.max, &v.final, &v.finalFeedback, &v.version, &v.reviewed}
+	return []any{&v.task.TaskID, &v.task.SubmissionID, &v.task.Status, &v.task.Attempts, &v.task.Error, &v.start, &v.finish, &v.ai, &v.feedback, &v.score, &v.max, &v.final, &v.finalFeedback, &v.version, &v.reviewed, &v.tags}
 }
-func (v *taskFields) value() Task {
+func (v *taskFields) value() (Task, error) {
+	tags := []string{}
+	if len(v.tags) > 0 {
+		if err := json.Unmarshal(v.tags, &tags); err != nil {
+			return Task{}, err
+		}
+	}
 	if v.start.Valid {
 		v.task.StartedAt = &v.start.Time
 	}
@@ -64,9 +90,9 @@ func (v *taskFields) value() Task {
 	}
 	if v.version.Valid {
 		v.task.ReviewVersion = int(v.version.Int64)
-		v.task.FinalReview = &Review{Score: int(v.score.Int64), MaxScore: int(v.max.Int64), Correct: v.final.Bool, Feedback: v.finalFeedback.String, Version: int(v.version.Int64), ReviewedAt: v.reviewed.Time}
+		v.task.FinalReview = &Review{ErrorTags: tags, Score: int(v.score.Int64), MaxScore: int(v.max.Int64), Correct: v.final.Bool, Feedback: v.finalFeedback.String, Version: int(v.version.Int64), ReviewedAt: v.reviewed.Time}
 	}
-	return v.task
+	return v.task, nil
 }
 func (s *Store) Views(ctx context.Context, classID, actor, assignment int64, subject string, mistakes, latest bool, page, size int) ([]SubmissionView, error) {
 	query := `SELECT s.id,s.assignment_id,s.student_id,u.username,s.answer,s.created_at,a.subject,a.title,a.question,a.max_score,` + latestSubmission + `,` + taskColumns + taskJoins + ` JOIN users u ON u.id=s.student_id WHERE s.class_id=?`
@@ -104,7 +130,10 @@ func (s *Store) Views(ctx context.Context, classID, actor, assignment int64, sub
 		if err = rows.Scan(append(targets, fields.targets()...)...); err != nil {
 			return nil, err
 		}
-		item.Task = fields.value()
+		item.Task, err = fields.value()
+		if err != nil {
+			return nil, err
+		}
 		items = append(items, item)
 	}
 	return items, rows.Err()
@@ -140,23 +169,38 @@ func (s *Store) Review(ctx context.Context, classID, teacher, submission int64, 
 		return Review{}, ErrInvalid
 	}
 	var version int
-	err = tx.QueryRowContext(ctx, `SELECT version FROM grade_reviews WHERE submission_id=?`, submission).Scan(&version)
+	var oldTags []byte
+	err = tx.QueryRowContext(ctx, `SELECT version,error_tags FROM grade_reviews WHERE submission_id=?`, submission).Scan(&version, &oldTags)
 	if err != nil && err != sql.ErrNoRows {
 		return Review{}, err
 	}
 	if version != *in.ExpectedVersion {
 		return Review{}, ErrConflict
 	}
+	tags := in.ErrorTags
+	if tags == nil {
+		tags = []string{}
+		if !*in.Correct && len(oldTags) > 0 {
+			if err = json.Unmarshal(oldTags, &tags); err != nil {
+				return Review{}, err
+			}
+		}
+	}
+	sort.Strings(tags)
+	rawTags, err := json.Marshal(tags)
+	if err != nil {
+		return Review{}, err
+	}
 	version++
-	_, err = tx.ExecContext(ctx, `INSERT INTO grade_reviews(submission_id,class_id,created_by,score,max_score,correct,feedback,version) VALUES(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE created_by=VALUES(created_by),score=VALUES(score),max_score=VALUES(max_score),correct=VALUES(correct),feedback=VALUES(feedback),version=VALUES(version),updated_at=UTC_TIMESTAMP(6)`, submission, classID, teacher, *in.Score, max, *in.Correct, in.Feedback, version)
+	_, err = tx.ExecContext(ctx, `INSERT INTO grade_reviews(submission_id,class_id,created_by,score,max_score,correct,feedback,version,error_tags) VALUES(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE created_by=VALUES(created_by),score=VALUES(score),max_score=VALUES(max_score),correct=VALUES(correct),feedback=VALUES(feedback),version=VALUES(version),error_tags=VALUES(error_tags),updated_at=UTC_TIMESTAMP(6)`, submission, classID, teacher, *in.Score, max, *in.Correct, in.Feedback, version, string(rawTags))
 	if err != nil {
 		return Review{}, err
 	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO grade_review_history(submission_id,class_id,created_by,score,max_score,correct,feedback,version) VALUES(?,?,?,?,?,?,?,?)`, submission, classID, teacher, *in.Score, max, *in.Correct, in.Feedback, version)
+	_, err = tx.ExecContext(ctx, `INSERT INTO grade_review_history(submission_id,class_id,created_by,score,max_score,correct,feedback,version,error_tags) VALUES(?,?,?,?,?,?,?,?,?)`, submission, classID, teacher, *in.Score, max, *in.Correct, in.Feedback, version, string(rawTags))
 	if err != nil {
 		return Review{}, err
 	}
-	result := Review{Score: *in.Score, MaxScore: max, Correct: *in.Correct, Feedback: in.Feedback, Version: version}
+	result := Review{ErrorTags: tags, Score: *in.Score, MaxScore: max, Correct: *in.Correct, Feedback: in.Feedback, Version: version}
 	if err = tx.QueryRowContext(ctx, `SELECT updated_at FROM grade_reviews WHERE submission_id=?`, submission).Scan(&result.ReviewedAt); err != nil {
 		return Review{}, err
 	}

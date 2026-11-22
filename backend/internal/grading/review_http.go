@@ -84,7 +84,7 @@ func (s *Service) Mistakes(w http.ResponseWriter, r *http.Request) {
 	write(w, 200, map[string]any{"items": items, "page": page, "page_size": size})
 }
 
-// @api {"method":"PUT","path":"/api/submissions/{id}/review","summary":"教师确认本班作答的分数与对错并追加评审历史","auth":"teacher","status":200,"request":{"type":"object","additionalProperties":false,"required":["score","correct","expected_version"],"properties":{"score":{"type":"integer","minimum":0,"maximum":100},"correct":{"type":"boolean"},"feedback":{"type":"string","maxLength":2000},"expected_version":{"type":"integer","minimum":0}}},"response":{"$ref":"#/components/schemas/FinalReview"},"errors":{"400":"分数或终评内容非法","401":"需要登录","403":"仅教师可终评","404":"资源不存在","409":"终评已更新，请刷新后重试","413":"请求过大","415":"请使用application/json","503":"服务暂时不可用"}}
+// @api {"method":"PUT","path":"/api/submissions/{id}/review","summary":"教师确认本班作答的分数与对错并追加评审历史","auth":"teacher","status":200,"request":{"type":"object","additionalProperties":false,"required":["score","correct","expected_version"],"properties":{"score":{"type":"integer","minimum":0,"maximum":100},"correct":{"type":"boolean"},"feedback":{"type":"string","maxLength":2000},"expected_version":{"type":"integer","minimum":0},"error_tags":{"type":"array","maxItems":6,"uniqueItems":true,"items":{"type":"string","enum":["concept","calculation","reading","method","careless","other"]}}}},"response":{"$ref":"#/components/schemas/FinalReview"},"errors":{"400":"分数或终评内容非法","401":"需要登录","403":"仅教师可终评","404":"资源不存在","409":"终评已更新，请刷新后重试","413":"请求过大","415":"请使用application/json","503":"服务暂时不可用"}}
 func (s *Service) Review(w http.ResponseWriter, r *http.Request) {
 	u, ok := actor(w, r, "teacher")
 	if !ok {

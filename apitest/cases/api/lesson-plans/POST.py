@@ -4,12 +4,10 @@ import http.client,json,time,uuid
 
 def run(c):
     prefix=c.run_id+'-lesson-';teacher2=None;second_token=None;empty_id=None
-    def gate(path,body=None):
-        script="const r=await fetch('http://127.0.0.1:8089'+process.argv[1],process.argv[2]?{method:'POST',headers:{'Content-Type':'application/json'},body:process.argv[2]}:{});process.stdout.write(await r.text())"
-        return json.loads(c.compose('exec','-T','gateway','node','--input-type=module','-e',script,path,'' if body is None else json.dumps(body)))
+    def gate(path,body=None):return c.fixture(path,body)
     def req(path,body=None,who='teacher',method=None):
         if who=='teacher2':return c.request(path,body,who=None,method=method,headers={'Authorization':'Bearer '+second_token})[:2]
-        return c.request(path,body,who,method)[:2]
+        return c.request(path,body,who,method,timeout=130 if path.endswith('/generate') else 10)[:2]
     def generate(**changes):
         return req('/api/lesson-plans/generate',{**valid,'client_key':prefix+uuid.uuid4().hex[:12],**changes})
     def count():return int(c.sql("SELECT COUNT(*) FROM lesson_plans WHERE client_key LIKE '"+prefix+"%'")[0][0])

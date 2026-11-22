@@ -1,8 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import http.client,json,time,urllib.parse
 
-def stats(c):
-    return json.loads(c.compose('exec','-T','gateway','node','--input-type=module','-e',"console.log(await(await fetch('http://127.0.0.1:8089/stats')).text())"))
+def stats(c):return c.fixture('/stats')
 
 def started(c):
     end=time.monotonic()+3
@@ -11,8 +10,7 @@ def started(c):
         time.sleep(.03)
     raise AssertionError('model request did not start')
 
-def release(c):
-    c.compose('exec','-T','gateway','node','--input-type=module','-e',"await fetch('http://127.0.0.1:8089/release',{method:'POST',body:'{}'})")
+def release(c):return c.fixture('/release',{})
 
 def run(c):
     # A13-S1/S2: ownership and effective judgment gate every model request.

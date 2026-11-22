@@ -6,10 +6,8 @@ def run(c):
     ids=[];aid=c.assignment();key='walk-'+c.run_id
     def req(path,body=None,who='student',method=None):return c.request(path,body,who,method)[:2]
     def create(**extra):return req('/api/walkthroughs',{'assignment_id':aid,'client_key':key,**extra})
-    def gate():
-        code="const r=await fetch('http://127.0.0.1:8089/stats');process.stdout.write(await r.text())"
-        return json.loads(c.compose('exec','-T','gateway','node','--input-type=module','-e',code))
-    def release():c.compose('exec','-T','gateway','node','--input-type=module','-e',"await fetch('http://127.0.0.1:8089/release',{method:'POST',body:'{}'})")
+    def gate():return c.fixture('/stats')
+    def release():return c.fixture('/release',{})
     def started():
         for _ in range(40):
             if gate()['calls']>0:return

@@ -1371,6 +1371,22 @@
                   "expected_version": {
                     "type": "integer",
                     "minimum": 0
+                  },
+                  "error_tags": {
+                    "type": "array",
+                    "maxItems": 6,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "concept",
+                        "calculation",
+                        "reading",
+                        "method",
+                        "careless",
+                        "other"
+                      ]
+                    }
                   }
                 }
               }
@@ -2143,6 +2159,423 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/learning-diagnosis": {
+      "get": {
+        "summary": "按教师终评查询本人或本班学情诊断",
+        "description": "",
+        "operationId": "get_api_learning_diagnosis",
+        "tags": [
+          "learning-diagnosis"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "按教师终评查询本人或本班学情诊断",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosisReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "范围非法或样本过多",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "范围非法或样本过多"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学生不存在或无权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "学生不存在或无权"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "subject",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chinese",
+                "math",
+                "english",
+                "science",
+                "morality"
+              ],
+              "default": "math"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 180,
+              "default": 30
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "仅教师可选本班学生"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/api/learning-diagnosis/samples/{id}": {
+      "get": {
+        "summary": "回查授权的当前终评作答",
+        "description": "",
+        "operationId": "get_api_learning_diagnosis_samples_id",
+        "tags": [
+          "learning-diagnosis"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "回查授权的当前终评作答",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosisSample"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "标识非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "标识非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "作答不存在或无权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "作答不存在或无权"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/learning-diagnosis/explanation": {
+      "post": {
+        "summary": "解释已确认的教师终评汇总",
+        "description": "",
+        "operationId": "post_api_learning_diagnosis_explanation",
+        "tags": [
+          "learning-diagnosis"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "解释已确认的教师终评汇总",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "explanation",
+                    "fingerprint"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "generated",
+                        "insufficient_data"
+                      ]
+                    },
+                    "explanation": {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "fingerprint": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "范围或指纹非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "范围或指纹非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学生不存在或无权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "学生不存在或无权"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "统计已更新，请刷新",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "统计已更新，请刷新"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型错误"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "正在生成，请稍后重试",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正在生成，请稍后重试"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "解释暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "解释暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "subject",
+                  "days",
+                  "fingerprint"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string",
+                    "enum": [
+                      "chinese",
+                      "math",
+                      "english",
+                      "science",
+                      "morality"
+                    ]
+                  },
+                  "days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 180
+                  },
+                  "student_id": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "fingerprint": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
               }
             }
           }
@@ -8277,6 +8710,327 @@
         }
       }
     },
+    "/api/mcp/learning-servers": {
+      "post": {
+        "summary": "幂等添加本班只读学习工具服务",
+        "description": " 仅教师可操作。",
+        "operationId": "post_api_mcp_learning_servers",
+        "tags": [
+          "mcp"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "幂等添加本班只读学习工具服务",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MCPServer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "正文非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正文非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师可操作"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "身份已变化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "身份已变化"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "保留名称冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "保留名称冲突"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "正文过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正文过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型错误"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "学习工具暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "学习工具暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/learning-tools/mcp": {
+      "post": {
+        "summary": "以当前登录身份访问已批准的本班学习MCP工具",
+        "description": "notifications/initialized成功202无正文；业务工具错误以result.isError或JSON-RPC error判定，HTTP200不代表工具成功。",
+        "operationId": "post_api_learning_tools_mcp",
+        "tags": [
+          "learning-tools"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "以当前登录身份访问已批准的本班学习MCP工具",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jsonrpc": {
+                      "type": "string"
+                    },
+                    "id": {},
+                    "result": {
+                      "type": "object"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求格式非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "角色无权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "角色无权"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "本班服务未启用或未连接",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "本班服务未启用或未连接"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "正文过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正文过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型错误"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "每人每分钟最多30次工具尝试",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "每人每分钟最多30次工具尝试"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "依赖不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "依赖不可用"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "jsonrpc",
+                  "method"
+                ],
+                "properties": {
+                  "jsonrpc": {
+                    "type": "string",
+                    "enum": [
+                      "2.0"
+                    ]
+                  },
+                  "id": {},
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "initialize",
+                      "notifications/initialized",
+                      "tools/list",
+                      "tools/call"
+                    ]
+                  },
+                  "params": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/search": {
       "post": {
         "summary": "本班关键字/向量/混合检索",
@@ -11664,6 +12418,20 @@
           "reviewed_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "error_tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "concept",
+                "calculation",
+                "reading",
+                "method",
+                "careless",
+                "other"
+              ]
+            }
           }
         }
       },
@@ -13157,6 +13925,274 @@
                   }
                 }
               }
+            }
+          }
+        }
+      },
+      "LearningStats": {
+        "type": "object",
+        "required": [
+          "samples",
+          "correct",
+          "score",
+          "max_score",
+          "score_percent",
+          "correct_percent"
+        ],
+        "properties": {
+          "samples": {
+            "type": "integer"
+          },
+          "correct": {
+            "type": "integer"
+          },
+          "score": {
+            "type": "integer"
+          },
+          "max_score": {
+            "type": "integer"
+          },
+          "score_percent": {
+            "type": "number",
+            "nullable": true
+          },
+          "correct_percent": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "DiagnosisSample": {
+        "type": "object",
+        "required": [
+          "submission_id",
+          "assignment_id",
+          "student_id",
+          "score",
+          "max_score",
+          "correct",
+          "review_version",
+          "error_tags",
+          "knowledge_point_ids"
+        ],
+        "properties": {
+          "submission_id": {
+            "type": "integer"
+          },
+          "assignment_id": {
+            "type": "integer"
+          },
+          "student_id": {
+            "type": "integer"
+          },
+          "student_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "score": {
+            "type": "integer"
+          },
+          "max_score": {
+            "type": "integer"
+          },
+          "correct": {
+            "type": "boolean"
+          },
+          "review_version": {
+            "type": "integer"
+          },
+          "submitted_at": {
+            "type": "string"
+          },
+          "reviewed_at": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "feedback": {
+            "type": "string"
+          },
+          "error_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "knowledge_point_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "DiagnosisReport": {
+        "type": "object",
+        "required": [
+          "samples",
+          "correct",
+          "score",
+          "max_score",
+          "score_percent",
+          "correct_percent",
+          "subject",
+          "from",
+          "to",
+          "timezone",
+          "fingerprint",
+          "student_count",
+          "page",
+          "page_size",
+          "total_evidence",
+          "students",
+          "points",
+          "trend",
+          "error_counts",
+          "evidence"
+        ],
+        "properties": {
+          "samples": {
+            "type": "integer"
+          },
+          "correct": {
+            "type": "integer"
+          },
+          "score": {
+            "type": "integer"
+          },
+          "max_score": {
+            "type": "integer"
+          },
+          "score_percent": {
+            "type": "number",
+            "nullable": true
+          },
+          "correct_percent": {
+            "type": "number",
+            "nullable": true
+          },
+          "subject": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "fingerprint": {
+            "type": "string"
+          },
+          "student_count": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total_evidence": {
+            "type": "integer"
+          },
+          "students": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "samples": {
+                  "type": "integer"
+                },
+                "correct": {
+                  "type": "integer"
+                },
+                "score": {
+                  "type": "integer"
+                },
+                "max_score": {
+                  "type": "integer"
+                },
+                "score_percent": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "correct_percent": {
+                  "type": "number",
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "trend": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string"
+                },
+                "samples": {
+                  "type": "integer"
+                },
+                "correct": {
+                  "type": "integer"
+                },
+                "score": {
+                  "type": "integer"
+                },
+                "max_score": {
+                  "type": "integer"
+                },
+                "score_percent": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "correct_percent": {
+                  "type": "number",
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "error_counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiagnosisSample"
             }
           }
         }

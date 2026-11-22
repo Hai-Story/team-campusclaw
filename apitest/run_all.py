@@ -15,7 +15,7 @@ def main():
                 spec=importlib.util.spec_from_file_location('case_'+str(len(results)),path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
                 observed=module.run(context);status='PASS'
             except Exception as error:
-                status='FAIL';frame=traceback.extract_tb(error.__traceback__)[-1];observed={'error':type(error).__name__+': '+str(error),'line':frame.lineno,'file':Path(frame.filename).name}
+                status='FAIL';frames=traceback.extract_tb(error.__traceback__);own=[f for f in frames if str(ROOT/'apitest') in f.filename];frame=(own or frames)[-1];observed={'error':type(error).__name__+': '+str(error),'line':frame.lineno,'file':Path(frame.filename).name}
             item={'case':name,'status':status,'seconds':round(time.monotonic()-start,3),'observed':observed};results.append(item)
             print(status,name,json.dumps(observed,ensure_ascii=False),flush=True)
     finally:context.cleanup()

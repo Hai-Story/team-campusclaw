@@ -6,7 +6,7 @@ def run(c):
     prefix='graph-'+c.run_id;points=set();drafts=[];empty=None;teacher2=None;token2=None;foreign=None
     def req(path,body=None,who='teacher',method=None):
         if who=='teacher2':return c.request(path,body,who=None,method=method,headers={'Authorization':'Bearer '+token2})[:2]
-        return c.request(path,body,who,method)[:2]
+        return c.request(path,body,who,method,timeout=130 if path.endswith('/generate') else 10)[:2]
     def point(name,**extra):
         code,v=req('/api/knowledge-points',{'subject':'math','name':prefix+'-'+name,'chapter':'图谱','description':'合成节点','material_ids':[],'assignment_ids':[],**extra});assert code==201,(code,v);points.add(v['id']);return v
     def edge(a,b,kind='prerequisite'):return req('/api/knowledge-graph/edges',{'from_id':a,'to_id':b,'kind':kind})
@@ -14,8 +14,8 @@ def run(c):
     def resource(id,who='student'):return req('/api/knowledge-graph/nodes/'+str(id)+'/resources',who=who)[1]
     def generated(nodes,edges=None,key=None):
         c.control(graph_response={'nodes':nodes,'edges':edges or [],'citation_indices':[1]});body={**base,'client_key':key or prefix+'-'+uuid.uuid4().hex[:8]};code,v=req('/api/knowledge-graph/drafts/generate',body);assert code==200 and v['draft'],(code,v);drafts.append(v['draft']['id']);return v['draft'],body
-    def gate():return json.loads(c.compose('exec','-T','gateway','node','--input-type=module','-e',"const r=await fetch('http://127.0.0.1:8089/stats');process.stdout.write(await r.text())"))
-    def release():c.compose('exec','-T','gateway','node','--input-type=module','-e',"await fetch('http://127.0.0.1:8089/release',{method:'POST',body:'{}'})")
+    def gate():return c.fixture('/stats')
+    def release():return c.fixture('/release',{})
     try:
         c.control();c.token('teacher');c.token('student');c.token('other');c.token('peer')
         mid=req('/api/materials')[1][0]['id'];base={'subject':'math','material_ids':[mid],'client_key':prefix+'-same'}

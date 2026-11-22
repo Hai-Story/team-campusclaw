@@ -127,5 +127,8 @@ func (s *Store) Task(ctx context.Context, classID, actor int64, teacher bool, ta
 	if err == sql.ErrNoRows {
 		err = ErrNotFound
 	}
-	return fields.value(), err
+	if err != nil {
+		return Task{}, err
+	}
+	return fields.value()
 }

@@ -154,6 +154,7 @@ func Mount(mux *http.ServeMux, s *Service, protect func(http.HandlerFunc) http.H
 	mountWalks(mux, s, protect)
 	mountGraph(mux, s, protect)
 	mountBank(mux, s, protect)
+	mountDiagnosis(mux, s, protect)
 	mux.HandleFunc("GET /api/knowledge-points", protect(s.ListPoints))
 	mux.HandleFunc("POST /api/knowledge-points", protect(s.SavePoint))
 	mux.HandleFunc("GET /api/knowledge-points/{id}", protect(s.GetPoint))

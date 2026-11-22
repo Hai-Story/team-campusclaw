@@ -79,6 +79,7 @@ type Result struct {
 	Feedback string `json:"feedback"`
 }
 type Review struct {
+	ErrorTags  []string  `json:"error_tags"`
 	Score      int       `json:"score"`
 	MaxScore   int       `json:"max_score"`
 	Correct    bool      `json:"correct"`

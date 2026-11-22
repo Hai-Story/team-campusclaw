@@ -6,10 +6,10 @@ def run(c):
     prefix='bank-'+c.run_id;point=None;foreign=None;empty=None;drafts=[];papers=[];teacher2=None;token2=None;trigger='apitest_bank_'+c.run_id;constraint=False
     def req(path,body=None,who='teacher',method=None):
         if who=='teacher2':return c.request(path,body,who=None,method=method,headers={'Authorization':'Bearer '+token2})[:2]
-        return c.request(path,body,who,method)[:2]
+        return c.request(path,body,who,method,timeout=130 if path.endswith('/generate') else 10)[:2]
     def generate(key=None,**change):return req('/api/question-drafts/generate',{**base,'client_key':key or prefix+'-'+uuid.uuid4().hex[:8],**change})
-    def gate():return json.loads(c.compose('exec','-T','gateway','node','--input-type=module','-e',"const r=await fetch('http://127.0.0.1:8089/stats');process.stdout.write(await r.text())"))
-    def release():c.compose('exec','-T','gateway','node','--input-type=module','-e',"await fetch('http://127.0.0.1:8089/release',{method:'POST',body:'{}'})")
+    def gate():return c.fixture('/stats')
+    def release():return c.fixture('/release',{})
     def waitcall():
         for _ in range(50):
             if gate()['calls']>0:return

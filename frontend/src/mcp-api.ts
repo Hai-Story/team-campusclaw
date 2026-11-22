@@ -4,6 +4,7 @@ export interface MCPTool {name:string;description:string;inputSchema:Record<stri
 export interface ToolCall {id?:number;ref:string;status:'ok'|'denied'|'error';text:string;round:number;server_name?:string;username?:string;user_id?:number;conversation_id?:number;request_message_id?:number;created_at?:string}
 const json=(body:unknown,method='POST')=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
 export const mcpAPI={
+ learning:()=>request<MCPServer>('/api/mcp/learning-servers',json({})),
  servers:()=>request<MCPServer[]>('/api/mcp/servers'),
  save:(v:{name:string;base_url:string;auth_token:string},id?:number)=>request<MCPServer>(id?`/api/mcp/servers/${id}`:'/api/mcp/servers',json(v,id?'PUT':'POST')),
  connect:(id:number)=>request<MCPServer>(`/api/mcp/servers/${id}/connect`,json({})),
