@@ -69,7 +69,7 @@ func (s *Store) Submit(ctx context.Context, classID, student, assignmentID int64
 	}
 	defer tx.Rollback()
 	var id int64
-	if err = tx.QueryRowContext(ctx, `SELECT id FROM grade_assignments WHERE id=? AND class_id=?`, assignmentID, classID).Scan(&id); err != nil {
+	if err = tx.QueryRowContext(ctx, `SELECT id FROM grade_assignments WHERE id=? AND class_id=? FOR SHARE`, assignmentID, classID).Scan(&id); err != nil {
 		if err == sql.ErrNoRows {
 			err = ErrNotFound
 		}

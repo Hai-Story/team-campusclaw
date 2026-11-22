@@ -589,3 +589,10 @@ h1,h2,h3 { line-height:1.35; }
 @media(max-width:900px){.diagnosis-columns{grid-template-columns:minmax(0,1fr)}.diagnosis-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){.diagnosis-filters label{min-width:0;flex:1}.diagnosis-page .homework-section-heading{align-items:stretch;flex-direction:column}.diagnosis-cards{gap:8px}.diagnosis-cards .homework-panel{padding:16px}}
 
 .diagnosis-filters select{min-width:0;width:100%;min-height:44px}.diagnosis-page .homework-section-heading>label input{min-width:0;width:100%;min-height:44px}
+
+.review-badge{margin-left:auto;border-radius:12px;background:var(--brand);color:#fff;padding:2px 8px;font-size:12px;min-width:22px;text-align:center}
+.review-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.review-tabs button[aria-pressed="true"]{border-color:var(--brand);color:var(--brand);font-weight:700}
+.review-page .homework-panel{margin-top:16px}.review-page h2{overflow-wrap:anywhere}.review-card-body{white-space:pre-wrap;overflow-wrap:anywhere;max-height:20rem;overflow:auto;line-height:1.7}
+.review-level{white-space:nowrap;color:var(--text-dim)}.review-notice{padding:12px;border-left:4px solid var(--brand);background:var(--panel)}
+.review-settings summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}.review-intervals{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0}.review-intervals label{display:grid;gap:8px}.review-intervals input{width:100%;min-width:0}.review-settings .toolbar{flex-wrap:wrap}.review-card .toolbar{flex-wrap:wrap}
+@media(max-width:767px){.review-intervals{grid-template-columns:repeat(2,minmax(0,1fr))}.review-card .homework-section-heading{align-items:flex-start;flex-wrap:wrap}}

@@ -43,6 +43,8 @@ func failure(w http.ResponseWriter, err error) {
 		status, text = 400, ErrInvalid.Error()
 	case errors.Is(err, ErrDuplicateQuestion):
 		status, text = 409, ErrDuplicateQuestion.Error()
+	case errors.Is(err, ErrReviewNotDue):
+		status, text = 409, ErrReviewNotDue.Error()
 	case errors.Is(err, ErrConflict):
 		status, text = 409, ErrConflict.Error()
 	case errors.Is(err, ErrEvidence):
@@ -155,6 +157,7 @@ func Mount(mux *http.ServeMux, s *Service, protect func(http.HandlerFunc) http.H
 	mountGraph(mux, s, protect)
 	mountBank(mux, s, protect)
 	mountDiagnosis(mux, s, protect)
+	mountReview(mux, s, protect)
 	mux.HandleFunc("GET /api/knowledge-points", protect(s.ListPoints))
 	mux.HandleFunc("POST /api/knowledge-points", protect(s.SavePoint))
 	mux.HandleFunc("GET /api/knowledge-points/{id}", protect(s.GetPoint))

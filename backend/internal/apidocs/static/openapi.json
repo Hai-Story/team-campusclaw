@@ -2165,6 +2165,887 @@
         }
       }
     },
+    "/api/review-cards/sync": {
+      "post": {
+        "summary": "同步当前错题和收藏复习卡",
+        "description": " 仅学生可使用。",
+        "operationId": "post_api_review_cards_sync",
+        "tags": [
+          "review-cards"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "同步当前错题和收藏复习卡",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "正文过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正文过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型错误"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review-cards": {
+      "get": {
+        "summary": "查询本人当前有效复习卡",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_review_cards",
+        "tags": [
+          "review-cards"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "查询本人当前有效复习卡",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "subject",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chinese",
+                "math",
+                "english",
+                "science",
+                "morality"
+              ],
+              "default": "math"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "due",
+                "all"
+              ],
+              "default": "due"
+            }
+          }
+        ]
+      }
+    },
+    "/api/review-cards/count": {
+      "get": {
+        "summary": "本人到期复习提醒",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_review_cards_count",
+        "tags": [
+          "review-cards"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "本人到期复习提醒",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "due_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "server_time": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "due_count",
+                    "server_time"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review-settings": {
+      "get": {
+        "summary": "读取本人复习间隔",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_review_settings",
+        "tags": [
+          "review-settings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "读取本人复习间隔",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "按版本设置未来复习间隔",
+        "description": " 仅学生可使用。",
+        "operationId": "put_api_review_settings",
+        "tags": [
+          "review-settings"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "按版本设置未来复习间隔",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "正文过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正文过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型错误"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "设置版本冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "设置版本冲突"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "intervals": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 365
+                    },
+                    "minItems": 5,
+                    "maxItems": 5
+                  },
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "intervals",
+                  "expected_version"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review-cards/{id}/complete": {
+      "post": {
+        "summary": "幂等完成本人到期复习",
+        "description": " 仅学生可使用。",
+        "operationId": "post_api_review_cards_id_complete",
+        "tags": [
+          "review-cards"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "幂等完成本人到期复习",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCompletion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "正文过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正文过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型错误"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "复习卡不存在或无权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习卡不存在或无权"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本、请求键、源状态冲突或尚未到期",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "版本、请求键、源状态冲突或尚未到期"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feedback": {
+                    "type": "string",
+                    "enum": [
+                      "good",
+                      "again"
+                    ]
+                  },
+                  "client_key": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9-]{1,64}$"
+                  },
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "feedback",
+                  "client_key",
+                  "expected_version"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review-completions": {
+      "get": {
+        "summary": "分页读取本人复习完成历史",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_review_completions",
+        "tags": [
+          "review-completions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "分页读取本人复习完成历史",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ReviewCompletion"
+                      }
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "page",
+                    "page_size"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可操作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可操作"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "复习暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "复习暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "subject",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chinese",
+                "math",
+                "english",
+                "science",
+                "morality"
+              ],
+              "default": "math"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
     "/api/learning-diagnosis": {
       "get": {
         "summary": "按教师终评查询本人或本班学情诊断",
@@ -14196,6 +15077,197 @@
             }
           }
         }
+      },
+      "ReviewSettings": {
+        "type": "object",
+        "properties": {
+          "intervals": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365
+            },
+            "minItems": 5,
+            "maxItems": 5
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "intervals",
+          "version"
+        ]
+      },
+      "ReviewCard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source_kind": {
+            "type": "string",
+            "enum": [
+              "mistake",
+              "favorite"
+            ]
+          },
+          "source_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "subject": {
+            "type": "string",
+            "enum": [
+              "chinese",
+              "math",
+              "english",
+              "science",
+              "morality"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "assignment_id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "source_kind",
+          "source_id",
+          "subject",
+          "title",
+          "body",
+          "level",
+          "due_at",
+          "version",
+          "active"
+        ]
+      },
+      "ReviewCompletion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "card_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "feedback": {
+            "type": "string",
+            "enum": [
+              "good",
+              "again"
+            ]
+          },
+          "previous_level": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "card": {
+            "$ref": "#/components/schemas/ReviewCard"
+          }
+        },
+        "required": [
+          "id",
+          "card_id",
+          "feedback",
+          "previous_level",
+          "level",
+          "due_at",
+          "completed_at",
+          "card"
+        ]
+      },
+      "ReviewReport": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewCard"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "due_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ReviewSettings"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "subject",
+          "items",
+          "total",
+          "due_count",
+          "settings",
+          "server_time",
+          "timezone",
+          "page",
+          "page_size"
+        ]
       },
       "Error": {
         "type": "object",

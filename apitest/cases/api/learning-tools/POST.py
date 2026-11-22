@@ -36,10 +36,21 @@ def run(c):
         assert rpc('',{},method='tools/list')[1]['result']['tools']==[]
         assert rpc('assignment_stats',{'subject':'math'})[1]['result']['isError'] is True
         approve(sid)
-        assert len(rpc('',{},method='tools/list')[1]['result']['tools'])>=2
+        assert len(rpc('',{},method='tools/list')[1]['result']['tools'])>=3
         c.control(correct=False);aid=c.assignment();s=c.submit(aid)[1];c.wait(s['task_id'])
         assert api(f'/api/submissions/{s["submission_id"]}/review',{'score':4,'correct':False,'expected_version':0,'error_tags':['concept']},method='PUT')[0]==200
         code,p=api('/api/knowledge-points',{'subject':'math','name':'native-'+c.run_id,'chapter':'工具章节','description':'合成只读工具验证','material_ids':[],'assignment_ids':[aid]});assert code==201;point=p['id']
+        assert api('/api/review-cards/sync',{},who='student')[0]==200
+        plan_report=api('/api/review-cards?subject=math',who='student')[1]
+        plan=call('review_plan',{'subject':'math'})
+        assert plan['due_count']==plan_report['due_count'] and plan['intervals']==plan_report['settings']['intervals']
+        assert [x['id'] for x in plan['items']]==[x['id'] for x in plan_report['items'][:5]]
+        assert all('body' not in x and 'answer' not in x for x in plan['items'])
+        assert rpc('review_plan',{'subject':'math'},who='teacher')[1]['result']['isError'] is True
+        for args in [{'subject':'all'},{'subject':'math','student_id':1},{'subject':'math','now':'2099-01-01'},{'subject':'math','feedback':'good'}]:assert rpc('review_plan',args)[1]['result']['isError'] is True
+        review_before=c.sql('SELECT COUNT(*) FROM review_completions;SELECT COALESCE(SUM(version),0) FROM review_cards;')
+        assert call('review_plan',{'subject':'math'})['due_count']==plan['due_count']
+        assert review_before==c.sql('SELECT COUNT(*) FROM review_completions;SELECT COALESCE(SUM(version),0) FROM review_cards;')
         c.control();counts=c.sql('SELECT COUNT(*) FROM knowledge_points;SELECT COUNT(*) FROM grade_reviews;SELECT COUNT(*) FROM submissions;')
         query=call('knowledge_points',{'subject':'math','q':'native-'+c.run_id});assert [v['id'] for v in query['items']]==[point]
         regular=api('/api/learning-diagnosis?subject=math',who='student')[1];tool=call('assignment_stats',{'subject':'math'});assert tool['source']=='teacher_final' and tool['totals']=={k:regular[k] for k in ['samples','correct','score','max_score','score_percent','correct_percent']}

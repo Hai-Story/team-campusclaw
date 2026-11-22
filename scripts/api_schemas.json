@@ -2531,5 +2531,196 @@
         }
       }
     }
+  },
+  "ReviewSettings": {
+    "type": "object",
+    "properties": {
+      "intervals": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "minItems": 5,
+        "maxItems": 5
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "intervals",
+      "version"
+    ]
+  },
+  "ReviewCard": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "source_kind": {
+        "type": "string",
+        "enum": [
+          "mistake",
+          "favorite"
+        ]
+      },
+      "source_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "title": {
+        "type": "string"
+      },
+      "body": {
+        "type": "string"
+      },
+      "level": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "due_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "assignment_id": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "id",
+      "source_kind",
+      "source_id",
+      "subject",
+      "title",
+      "body",
+      "level",
+      "due_at",
+      "version",
+      "active"
+    ]
+  },
+  "ReviewCompletion": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "card_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "feedback": {
+        "type": "string",
+        "enum": [
+          "good",
+          "again"
+        ]
+      },
+      "previous_level": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "level": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "due_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "completed_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "card": {
+        "$ref": "#/components/schemas/ReviewCard"
+      }
+    },
+    "required": [
+      "id",
+      "card_id",
+      "feedback",
+      "previous_level",
+      "level",
+      "due_at",
+      "completed_at",
+      "card"
+    ]
+  },
+  "ReviewReport": {
+    "type": "object",
+    "properties": {
+      "subject": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ReviewCard"
+        }
+      },
+      "total": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "due_count": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "settings": {
+        "$ref": "#/components/schemas/ReviewSettings"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "timezone": {
+        "type": "string"
+      },
+      "page": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "page_size": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "subject",
+      "items",
+      "total",
+      "due_count",
+      "settings",
+      "server_time",
+      "timezone",
+      "page",
+      "page_size"
+    ]
   }
 }
