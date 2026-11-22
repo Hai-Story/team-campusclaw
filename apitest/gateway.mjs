@@ -20,12 +20,14 @@ const server=http.createServer(async(req,res)=>{
  calls++
  const task=req.headers['x-task-id']||'teaching',n=(counts.get(task)||0)+1;counts.set(task,n)
  if(String(task).startsWith('explain-')&&applied.hold_explanation)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
+ if(String(task).startsWith('lesson-')&&applied.hold_lesson)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
  await new Promise(resolve=>setTimeout(resolve,applied.delay_ms))
  if(res.destroyed)return
  const status=applied.statuses[Math.min(n-1,applied.statuses.length-1)]||200
  if(status!==200){res.writeHead(status);res.end('{"error":"controlled fixture error"}');return}
  let input={};try{input=JSON.parse(body.messages?.find(x=>x.role==='user')?.content||'{}')}catch{}
- const content=String(task).startsWith('explain-')?JSON.stringify(applied.explanation_response??{explanation:'请回想这类题目的基本定义，检查作答中采用的概念是否一致，再试着用定义验证自己的判断。'}):task==='teaching'?'请先检查题目中的已知条件，再核对每一步推导。':JSON.stringify({correct:applied.correct??(String(input.answer).trim()===String(input.expected_answer).trim()),feedback:applied.feedbacks?.[Math.min(n-1,applied.feedbacks.length-1)]??(applied.correct===false?'本次结果与参考不一致，请核对运算和符号。':'本次结果与参考一致。')})
+ const lessonResponse={goals:['理解分数的意义'],key_points:['整体与部分的关系'],difficulties:['解释单位整体的变化'],activities:[{title:'观察与讨论',minutes:input.total_minutes,steps:['阅读指定讲义并比较实例','请学生说明自己的理由']}],resources:['指定本班讲义'],citation_indices:[1]}
+ const content=String(task).startsWith('lesson-')?(typeof applied.lesson_raw==='string'?applied.lesson_raw:JSON.stringify(applied.lesson_response??lessonResponse)):String(task).startsWith('explain-')?JSON.stringify(applied.explanation_response??{explanation:'请回想这类题目的基本定义，检查作答中采用的概念是否一致，再试着用定义验证自己的判断。'}):task==='teaching'?'请先检查题目中的已知条件，再核对每一步推导。':JSON.stringify({correct:applied.correct??(String(input.answer).trim()===String(input.expected_answer).trim()),feedback:applied.feedbacks?.[Math.min(n-1,applied.feedbacks.length-1)]??(applied.correct===false?'本次结果与参考不一致，请核对运算和符号。':'本次结果与参考一致。')})
  if(body.stream){res.setHeader('Content-Type','text/event-stream');res.write('data: '+JSON.stringify({choices:[{delta:{content}}]})+'\n\n');res.end('data: [DONE]\n\n');return}
  res.end(JSON.stringify({choices:[{message:{role:'assistant',content}}],usage:{prompt_tokens:20,completion_tokens:12,total_tokens:32}}))
 })

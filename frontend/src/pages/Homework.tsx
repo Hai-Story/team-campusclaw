@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, type FormEvent } from 'react'
-import type { Me } from '../api'
+import { request, type Me } from '../api'
 import { homework, readSubject, submissionKey, watchTask, terminal, effectiveCorrect, statusText, type Assignment, type Submission, type Subject, subjects } from '../grading'
 import { SubjectPicker, Pagination, ResultPanel, Verdict } from '../components/HomeworkParts'
 import ReviewDialog from '../components/ReviewDialog'
@@ -24,7 +24,23 @@ export default function Homework({me}:{me:Me}){
  useEffect(()=>{sessionStorage.setItem(storage,subject)},[storage,subject])
  useEffect(()=>{
   const control=new AbortController();setLoading(true);setListError('')
-  homework.list(page,subject,control.signal).then(data=>{if(control.signal.aborted)return;setItems(data.items);const saved=Number(sessionStorage.getItem(`${storage}:${subject}`));setSelected(old=>data.items.some(x=>x.id===old)?old:data.items.some(x=>x.id===saved)?saved:data.items[0]?.id??null)})
+  homework.list(page,subject,control.signal).then(async data=>{
+   if(control.signal.aborted)return
+   const saved=Number(sessionStorage.getItem(`${storage}:${subject}`)),jump=Number(sessionStorage.getItem(`${storage}:jump`))
+   if(page===1&&Number.isSafeInteger(saved)&&saved>0&&(!data.items.some(x=>x.id===saved)||jump===saved)){
+    try{
+     const linked=await request<Assignment>(`/api/assignments/${saved}`,{signal:control.signal})
+     if(control.signal.aborted)return
+     if(linked.subject!==subject)throw new Error('关联作业学科不一致，请重新选择。')
+     data.items=[linked,...data.items.filter(x=>x.id!==linked.id)]
+    }catch(e){
+     if(control.signal.aborted)return
+     if(jump===saved)throw new Error('关联作业暂不可用，请返回知识点重新选择。')
+    }
+   }
+   if(control.signal.aborted)return
+   setItems(data.items);setSelected(old=>data.items.some(x=>x.id===old)?old:data.items.some(x=>x.id===saved)?saved:data.items[0]?.id??null)
+  })
    .catch(e=>{if(!control.signal.aborted)setListError(e instanceof Error?e.message:'作业读取失败')}).finally(()=>{if(!control.signal.aborted)setLoading(false)})
   return()=>control.abort()
  },[subject,page,refresh,storage])
