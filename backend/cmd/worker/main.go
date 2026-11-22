@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"campusclaw/backend/internal/auditlog"
 	"campusclaw/backend/internal/config"
 	"campusclaw/backend/internal/db"
 	"campusclaw/backend/internal/grading"
@@ -37,6 +38,9 @@ func main() {
 	defer d.Close()
 	if db.WaitReady(d) != nil {
 		log.Fatal("数据库不可用")
+	}
+	if auditlog.Migrate(d) != nil {
+		log.Fatal("审计迁移失败")
 	}
 	store := &grading.Store{DB: d}
 	if *refresh {

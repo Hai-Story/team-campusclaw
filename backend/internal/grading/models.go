@@ -114,8 +114,9 @@ type Work struct {
 	Question, Answer, Expected, Subject string
 }
 type Usage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
+	Reported         bool `json:"-"`
+	PromptTokens     int  `json:"prompt_tokens"`
+	CompletionTokens int  `json:"completion_tokens"`
 }
 type GradeError struct {
 	Code  string
