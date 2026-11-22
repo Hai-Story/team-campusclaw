@@ -88,13 +88,35 @@ func (s *Store) SavePoint(ctx context.Context, u auth.User, id int64, in PointIn
 		return Point{}, err
 	}
 	defer tx.Rollback()
+	if err = graphScope(ctx, tx, u, in.Subject); err != nil {
+		return Point{}, err
+	}
+	var oldSubject string
 	if id > 0 {
 		var version int
-		if err = tx.QueryRowContext(ctx, `SELECT version FROM knowledge_points WHERE id=? AND class_id=? FOR UPDATE`, id, u.ClassID).Scan(&version); err != nil {
+		if err = tx.QueryRowContext(ctx, `SELECT version,subject FROM knowledge_points WHERE id=? AND class_id=? FOR UPDATE`, id, u.ClassID).Scan(&version, &oldSubject); err != nil {
 			return Point{}, normalize(err)
 		}
 		if version != *in.ExpectedVersion {
 			return Point{}, ErrConflict
+		}
+	}
+
+	if id == 0 || oldSubject != in.Subject {
+		var count int
+		if err = tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM knowledge_points WHERE class_id=? AND subject=?`, u.ClassID, in.Subject).Scan(&count); err != nil {
+			return Point{}, err
+		}
+		if count >= 500 {
+			return Point{}, ErrConflict
+		}
+		if id > 0 {
+			if err = tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM knowledge_graph_edges WHERE class_id=? AND (from_id=? OR to_id=?)`, u.ClassID, id, id).Scan(&count); err != nil {
+				return Point{}, err
+			}
+			if count > 0 {
+				return Point{}, ErrConflict
+			}
 		}
 	}
 	// All resource checks precede mutation and hold a shared lock until commit.

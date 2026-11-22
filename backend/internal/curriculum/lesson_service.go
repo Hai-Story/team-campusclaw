@@ -15,7 +15,7 @@ import (
 
 var curriculumLog = log.New(os.Stdout, "", 0)
 
-var ErrEvidence = errors.New("资料已更新，请重新生成教案")
+var ErrEvidence = errors.New("资料已更新，请重新生成内容")
 var ErrBusy = errors.New("正在生成，请稍后重试")
 
 //go:embed skills/*/SKILL.md

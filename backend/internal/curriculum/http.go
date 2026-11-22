@@ -144,6 +144,8 @@ func pointFilter(r *http.Request) (PointFilter, error) {
 // @api {"method":"DELETE","path":"/api/knowledge-points/{id}/favorite","summary":"幂等取消本人收藏","auth":"student","status":204,"errors":{"400":"标识非法","401":"需要登录","403":"仅学生可收藏","404":"资源不存在","503":"服务暂时不可用"}}
 func Mount(mux *http.ServeMux, s *Service, protect func(http.HandlerFunc) http.HandlerFunc) {
 	mountLessons(mux, s, protect)
+	mountWalks(mux, s, protect)
+	mountGraph(mux, s, protect)
 	mux.HandleFunc("GET /api/knowledge-points", protect(s.ListPoints))
 	mux.HandleFunc("POST /api/knowledge-points", protect(s.SavePoint))
 	mux.HandleFunc("GET /api/knowledge-points/{id}", protect(s.GetPoint))

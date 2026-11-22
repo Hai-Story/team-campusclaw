@@ -2828,6 +2828,1194 @@
         }
       }
     },
+    "/api/knowledge-graph": {
+      "get": {
+        "summary": "读取本学科正式图谱和终评薄弱样本",
+        "description": "",
+        "operationId": "get_api_knowledge_graph",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "读取本学科正式图谱和终评薄弱样本",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeGraph"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "学科非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "学科非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "图谱超过上限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "图谱超过上限"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "subject",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chinese",
+                "math",
+                "english",
+                "science",
+                "morality"
+              ],
+              "default": "math"
+            }
+          }
+        ]
+      }
+    },
+    "/api/knowledge-graph/edges": {
+      "post": {
+        "summary": "教师新增或幂等读取正式关系",
+        "description": " 仅教师可操作。",
+        "operationId": "post_api_knowledge_graph_edges",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "教师新增或幂等读取正式关系",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphEdge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "节点不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "节点不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "成环或超过上限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "成环或超过上限"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphEdgeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-graph/edges/{id}": {
+      "delete": {
+        "summary": "教师按版本删除本班关系",
+        "description": " 仅教师可操作。",
+        "operationId": "delete_api_knowledge_graph_edges_id",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "教师按版本删除本班关系"
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "版本冲突"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpectedVersion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-graph/nodes/{id}/resources": {
+      "get": {
+        "summary": "读取本班节点资源、即时错题和终评样本",
+        "description": "",
+        "operationId": "get_api_knowledge_graph_nodes_id_resources",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "读取本班节点资源、即时错题和终评样本",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "point": {
+                      "$ref": "#/components/schemas/KnowledgePoint"
+                    },
+                    "materials": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "assignments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "recommended_points": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "review_materials": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "mistakes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "reviewed": {
+                      "type": "integer"
+                    },
+                    "incorrect": {
+                      "type": "integer"
+                    },
+                    "weak": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "标识非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "标识非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/knowledge-graph/drafts/generate": {
+      "post": {
+        "summary": "从指定讲义生成教师私有图谱候选",
+        "description": " 仅教师可操作。",
+        "operationId": "post_api_knowledge_graph_drafts_generate",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "从指定讲义生成教师私有图谱候选",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "generated",
+                        "insufficient_evidence"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "draft": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/GraphDraft"
+                        }
+                      ],
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资料不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资料不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "键冲突或来源变化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "键冲突或来源变化"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "正在生成",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "正在生成"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "生成暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "生成暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-graph/drafts": {
+      "get": {
+        "summary": "分页读取本人图谱候选",
+        "description": " 仅教师可操作。",
+        "operationId": "get_api_knowledge_graph_drafts",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "分页读取本人图谱候选",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GraphDraft"
+                      }
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "page_size": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "筛选非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "筛选非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-graph/drafts/{id}": {
+      "get": {
+        "summary": "读取本人图谱候选与出处",
+        "description": " 仅教师可操作。",
+        "operationId": "get_api_knowledge_graph_drafts_id",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "读取本人图谱候选与出处",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDraft"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "标识非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "标识非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      },
+      "put": {
+        "summary": "按版本修改待审节点及关系",
+        "description": " 仅教师可操作。",
+        "operationId": "put_api_knowledge_graph_drafts_id",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "按版本修改待审节点及关系",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDraft"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态或版本冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "状态或版本冲突"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphDraftUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-graph/drafts/{id}/approve": {
+      "post": {
+        "summary": "教师原子确认候选节点、关系及来源",
+        "description": " 仅教师可操作。",
+        "operationId": "post_api_knowledge_graph_drafts_id_approve",
+        "tags": [
+          "knowledge-graph"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "教师原子确认候选节点、关系及来源",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDraft"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅教师"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本、来源、节点或成环冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "版本、来源、节点或成环冲突"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpectedVersion"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/knowledge-points": {
       "get": {
         "summary": "分页查询本班知识点与本人收藏",
@@ -3685,6 +4873,493 @@
             }
           }
         ]
+      }
+    },
+    "/api/walkthroughs": {
+      "post": {
+        "summary": "学生创建本人单题讲题过程",
+        "description": " 仅学生可使用。",
+        "operationId": "post_api_walkthroughs",
+        "tags": [
+          "walkthroughs"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "学生创建本人单题讲题过程",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Walkthrough"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "作业不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "作业不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "创建键冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "创建键冲突"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WalkCreate"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "按学科分页读取本人讲题历史",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_walkthroughs",
+        "tags": [
+          "walkthroughs"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "按学科分页读取本人讲题历史",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Walkthrough"
+                      }
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "page_size": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "筛选非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "筛选非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/walkthroughs/{id}": {
+      "get": {
+        "summary": "恢复本人讲题阶段及历史",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_walkthroughs_id",
+        "tags": [
+          "walkthroughs"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "恢复本人讲题阶段及历史",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Walkthrough"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "标识非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "标识非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/walkthroughs/{id}/turns": {
+      "post": {
+        "summary": "SSE讲题讨论、推进及完成",
+        "description": "meta确认在途；校验并保存后delta.text和done；error表示失败，刷新GET恢复权威状态。已提交结果在断流后仍保留。10秒注释心跳，模型预算121秒、租约130秒。 仅学生可使用。",
+        "operationId": "post_api_walkthroughs_id_turns",
+        "tags": [
+          "walkthroughs"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE讲题讨论、推进及完成",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "输入非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本、阶段或在途冲突",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "版本、阶段或在途冲突"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求过大",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "请求过大"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "类型非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "类型非法"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "依赖暂不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "依赖暂不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WalkInput"
+              }
+            }
+          }
+        }
       }
     },
     "/api/login": {
@@ -8736,6 +10411,506 @@
           "expected_version": {
             "type": "integer",
             "minimum": 1
+          }
+        }
+      },
+      "WalkCreate": {
+        "type": "object",
+        "required": [
+          "assignment_id",
+          "client_key"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "assignment_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "client_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]{1,64}$"
+          }
+        }
+      },
+      "WalkInput": {
+        "type": "object",
+        "required": [
+          "content",
+          "action",
+          "expected_version",
+          "client_key"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "discuss",
+              "advance",
+              "finish"
+            ]
+          },
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "client_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]{1,64}$"
+          }
+        }
+      },
+      "Walkthrough": {
+        "type": "object",
+        "required": [
+          "id",
+          "assignment_id",
+          "subject",
+          "title",
+          "question",
+          "stage",
+          "version",
+          "turns",
+          "active"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "assignment_id": {
+            "type": "integer"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "read",
+              "method",
+              "derive",
+              "check",
+              "completed"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "improvements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExpectedVersion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_version"
+        ],
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "SourceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "subject",
+          "material_ids",
+          "client_key"
+        ],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "enum": [
+              "chinese",
+              "math",
+              "english",
+              "science",
+              "morality"
+            ]
+          },
+          "material_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "client_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]{1,64}$"
+          }
+        }
+      },
+      "GraphEdgeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from_id",
+          "to_id",
+          "kind"
+        ],
+        "properties": {
+          "from_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "to_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "prerequisite",
+              "contains",
+              "related"
+            ]
+          }
+        }
+      },
+      "GraphEdge": {
+        "type": "object",
+        "required": [
+          "id",
+          "from_id",
+          "to_id",
+          "kind",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "from_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "to_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "prerequisite",
+              "contains",
+              "related"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "KnowledgeGraph": {
+        "type": "object",
+        "required": [
+          "subject",
+          "nodes",
+          "edges"
+        ],
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "chapter",
+                "reviewed",
+                "incorrect",
+                "weak"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "name": {
+                  "type": "string"
+                },
+                "chapter": {
+                  "type": "string"
+                },
+                "reviewed": {
+                  "type": "integer"
+                },
+                "incorrect": {
+                  "type": "integer"
+                },
+                "weak": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            }
+          }
+        }
+      },
+      "GraphDraftUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "nodes",
+          "edges",
+          "citation_indices",
+          "expected_version"
+        ],
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "chapter",
+                "description"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "chapter": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              }
+            }
+          },
+          "edges": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "from",
+                "to",
+                "kind"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "prerequisite",
+                    "contains",
+                    "related"
+                  ]
+                }
+              }
+            }
+          },
+          "citation_indices": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "GraphDraft": {
+        "type": "object",
+        "required": [
+          "id",
+          "subject",
+          "nodes",
+          "edges",
+          "citation_indices",
+          "citations",
+          "status",
+          "version",
+          "point_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "subject": {
+            "type": "string"
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "chapter",
+                "description"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "chapter": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              }
+            }
+          },
+          "edges": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "from",
+                "to",
+                "kind"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "prerequisite",
+                    "contains",
+                    "related"
+                  ]
+                }
+              }
+            }
+          },
+          "citation_indices": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "existing_nodes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "input": {
+            "$ref": "#/components/schemas/SourceInput"
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "point_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

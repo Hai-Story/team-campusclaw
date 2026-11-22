@@ -1235,5 +1235,505 @@
         "minimum": 1
       }
     }
+  },
+  "WalkCreate": {
+    "type": "object",
+    "required": [
+      "assignment_id",
+      "client_key"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "assignment_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "WalkInput": {
+    "type": "object",
+    "required": [
+      "content",
+      "action",
+      "expected_version",
+      "client_key"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "content": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      },
+      "action": {
+        "type": "string",
+        "enum": [
+          "discuss",
+          "advance",
+          "finish"
+        ]
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "Walkthrough": {
+    "type": "object",
+    "required": [
+      "id",
+      "assignment_id",
+      "subject",
+      "title",
+      "question",
+      "stage",
+      "version",
+      "turns",
+      "active"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "assignment_id": {
+        "type": "integer"
+      },
+      "subject": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "question": {
+        "type": "string"
+      },
+      "stage": {
+        "type": "string",
+        "enum": [
+          "read",
+          "method",
+          "derive",
+          "check",
+          "completed"
+        ]
+      },
+      "version": {
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "improvements": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "turns": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "ExpectedVersion": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "expected_version"
+    ],
+    "properties": {
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "SourceInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "material_ids",
+      "client_key"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "material_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "GraphEdgeInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "from_id",
+      "to_id",
+      "kind"
+    ],
+    "properties": {
+      "from_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "to_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "prerequisite",
+          "contains",
+          "related"
+        ]
+      }
+    }
+  },
+  "GraphEdge": {
+    "type": "object",
+    "required": [
+      "id",
+      "from_id",
+      "to_id",
+      "kind",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "from_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "to_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "prerequisite",
+          "contains",
+          "related"
+        ]
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "KnowledgeGraph": {
+    "type": "object",
+    "required": [
+      "subject",
+      "nodes",
+      "edges"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string"
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "name",
+            "chapter",
+            "reviewed",
+            "incorrect",
+            "weak"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "name": {
+              "type": "string"
+            },
+            "chapter": {
+              "type": "string"
+            },
+            "reviewed": {
+              "type": "integer"
+            },
+            "incorrect": {
+              "type": "integer"
+            },
+            "weak": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/GraphEdge"
+        }
+      }
+    }
+  },
+  "GraphDraftUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "nodes",
+      "edges",
+      "citation_indices",
+      "expected_version"
+    ],
+    "properties": {
+      "nodes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "chapter",
+            "description"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "chapter": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "to",
+            "kind"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "prerequisite",
+                "contains",
+                "related"
+              ]
+            }
+          }
+        }
+      },
+      "citation_indices": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "GraphDraft": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "nodes",
+      "edges",
+      "citation_indices",
+      "citations",
+      "status",
+      "version",
+      "point_ids"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string"
+      },
+      "nodes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "chapter",
+            "description"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "chapter": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "to",
+            "kind"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "prerequisite",
+                "contains",
+                "related"
+              ]
+            }
+          }
+        }
+      },
+      "citation_indices": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "existing_nodes": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      },
+      "input": {
+        "$ref": "#/components/schemas/SourceInput"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved"
+        ]
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
   }
 }
