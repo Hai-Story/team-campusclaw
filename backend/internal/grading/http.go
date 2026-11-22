@@ -36,6 +36,10 @@ func failure(w http.ResponseWriter, err error) {
 		status = 409
 		message = "该提交标识已用于其他内容，请使用新的提交标识"
 	}
+	if errors.Is(err, ErrPaperManaged) {
+		status = 409
+		message = "请打开对应多题作业后整卷提交"
+	}
 	write(w, status, map[string]string{"error": message})
 }
 func actor(w http.ResponseWriter, r *http.Request, role string) (auth.User, bool) {

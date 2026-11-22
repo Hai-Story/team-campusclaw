@@ -10,12 +10,15 @@ import (
 	"time"
 )
 
+var ErrPaperManaged = errors.New("whole paper required")
 var ErrNotFound = errors.New("resource not found")
 var ErrConflict = errors.New("idempotency conflict")
 var keyPattern = regexp.MustCompile(`^[A-Za-z0-9-]{1,64}$`)
 var taskPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 type Assignment struct {
+	PaperID        int64     `json:"paper_id,omitempty"`
+	QuestionNumber int       `json:"question_number,omitempty"`
 	ID             int64     `json:"id"`
 	ClassID        int64     `json:"-"`
 	Title          string    `json:"title"`

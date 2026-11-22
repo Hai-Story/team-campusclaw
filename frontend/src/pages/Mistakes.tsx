@@ -4,7 +4,7 @@ import { homework, readSubject, type Subject, type Submission, subjects } from '
 import { SubjectPicker, Pagination, ResultPanel } from '../components/HomeworkParts'
 import MistakeExplanation from '../components/MistakeExplanation'
 
-export default function Mistakes({me,onOpenMaterial}:{me:Me;onOpenMaterial:(id:number)=>void}){
+export default function Mistakes({me,onOpenMaterial,onOpenAssignment}:{me:Me;onOpenMaterial:(id:number)=>void;onOpenAssignment:(id:number,subject:Subject)=>void}){
  const key=`campusclaw_subject:${me.id}:${me.class_id}`
  const [subject,setSubject]=useState<Subject>(()=>readSubject(sessionStorage.getItem(key)))
  const [items,setItems]=useState<Submission[]>([]),[page,setPage]=useState(1),[loading,setLoading]=useState(true),[error,setError]=useState(''),[refresh,setRefresh]=useState(0)
@@ -15,7 +15,7 @@ export default function Mistakes({me,onOpenMaterial}:{me:Me;onOpenMaterial:(id:n
  },[subject,page,refresh,key])
  return <main className="homework-page"><header className="page-heading"><div><div className="eyebrow">{me.class_name} · 作业练习</div><h1>我的错题</h1><p className="hint">按学科回看最新作答中的错题与反馈。教师终评优先，改判正确后会从这里移除。</p></div><button disabled={loading} onClick={()=>setRefresh(x=>x+1)}>刷新错题</button></header>
  <SubjectPicker value={subject} onChange={value=>{if(value!==subject){setSubject(value);setPage(1);setItems([])}}}/>
- {loading?<p role="status">正在读取错题…</p>:error?<div className="homework-panel" role="alert"><p>{error}</p><button onClick={()=>setRefresh(x=>x+1)}>重试读取</button></div>:items.length===0?<div className="homework-panel empty-mistakes"><h2>这个学科还没有错题</h2><p className="hint">完成作业后，被判错的最新作答会显示在这里。</p></div>:<div className="mistake-list">{items.map(item=><article className="homework-panel" key={item.id}><span className="verdict-tag incorrect">{item.task.final_review?'教师终评判错':'AI初判判错 · 待教师终评'}</span><h2>{item.title}</h2><p className="hint">{subjects.find(s=>s.id===item.subject)?.name}</p><h3>题目</h3><p className="homework-question">{item.question}</p><h3>我的作答</h3><p className="student-answer">{item.answer}</p><ResultPanel task={item.task}/><MistakeExplanation submission={item.id} onOpenMaterial={onOpenMaterial}/></article>)}</div>}
+ {loading?<p role="status">正在读取错题…</p>:error?<div className="homework-panel" role="alert"><p>{error}</p><button onClick={()=>setRefresh(x=>x+1)}>重试读取</button></div>:items.length===0?<div className="homework-panel empty-mistakes"><h2>这个学科还没有错题</h2><p className="hint">完成作业后，被判错的最新作答会显示在这里。</p></div>:<div className="mistake-list">{items.map(item=><article className="homework-panel" key={item.id}><span className="verdict-tag incorrect">{item.task.final_review?'教师终评判错':'AI初判判错 · 待教师终评'}</span><h2>{item.title}</h2><p className="hint">{subjects.find(s=>s.id===item.subject)?.name}</p><h3>题目</h3><p className="homework-question">{item.question}</p><h3>我的作答</h3><p className="student-answer">{item.answer}</p><ResultPanel task={item.task}/><button onClick={()=>onOpenAssignment(item.assignment_id,item.subject)}>查看对应作业</button><MistakeExplanation submission={item.id} onOpenMaterial={onOpenMaterial}/></article>)}</div>}
  <Pagination page={page} loading={loading} hasMore={items.length>=20} onChange={setPage}/>
  </main>
 }

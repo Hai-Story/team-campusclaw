@@ -609,6 +609,12 @@
           "science",
           "morality"
         ]
+      },
+      "paper_id": {
+        "type": "integer"
+      },
+      "question_number": {
+        "type": "integer"
       }
     }
   },
@@ -2719,6 +2725,253 @@
       "settings",
       "server_time",
       "timezone",
+      "page",
+      "page_size"
+    ]
+  },
+  "PublishedQuestion": {
+    "type": "object",
+    "properties": {
+      "position": {
+        "type": "integer"
+      },
+      "assignment_id": {
+        "type": "integer"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "type": {
+        "type": "string"
+      },
+      "stem": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "answer": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "explanation": {
+        "type": "string"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/Citation"
+            }
+          ],
+          "type": "object",
+          "properties": {
+            "chunk_id": {
+              "type": "integer"
+            },
+            "available": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "position",
+      "assignment_id",
+      "score",
+      "type",
+      "stem",
+      "options",
+      "knowledge_point_ids"
+    ]
+  },
+  "PublishedPaper": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "title": {
+        "type": "string"
+      },
+      "total_score": {
+        "type": "integer"
+      },
+      "question_count": {
+        "type": "integer"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "questions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PublishedQuestion"
+        }
+      }
+    },
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "total_score",
+      "question_count",
+      "created_at"
+    ]
+  },
+  "PaperAttemptInput": {
+    "type": "object",
+    "properties": {
+      "answers": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 50,
+        "items": {
+          "type": "object",
+          "properties": {
+            "assignment_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "answer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "assignment_id",
+            "answer"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "answers"
+    ],
+    "additionalProperties": false
+  },
+  "PaperAttempt": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "paper_id": {
+        "type": "integer"
+      },
+      "student_id": {
+        "type": "integer"
+      },
+      "student_name": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "latest": {
+        "type": "boolean"
+      },
+      "reviewed_count": {
+        "type": "integer"
+      },
+      "reviewed_score": {
+        "type": "integer"
+      },
+      "final_score": {
+        "type": "integer",
+        "nullable": true
+      },
+      "total_score": {
+        "type": "integer"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SubmissionView"
+        }
+      }
+    },
+    "required": [
+      "id",
+      "paper_id",
+      "student_id",
+      "student_name",
+      "created_at",
+      "latest",
+      "reviewed_count",
+      "reviewed_score",
+      "final_score",
+      "total_score",
+      "items"
+    ]
+  },
+  "PublishedPage": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PublishedPaper"
+        }
+      },
+      "page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "items",
+      "page",
+      "page_size"
+    ]
+  },
+  "PaperAttemptPage": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PaperAttempt"
+        }
+      },
+      "page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "items",
       "page",
       "page_size"
     ]

@@ -13,6 +13,7 @@ import (
 
 type Store struct{ DB *sql.DB }
 type queryer interface {
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
 	QueryRowContext(context.Context, string, ...any) *sql.Row
 }
 

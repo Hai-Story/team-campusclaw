@@ -4,7 +4,7 @@ import { subjects, type Subject } from './subjects.ts'
 export { subjects } from './subjects.ts'
 export type { Subject } from './subjects.ts'
 export function readSubject(raw:string|null):Subject{return raw==='physics'||raw==='chemistry'?'science':subjects.some(x=>x.id===raw)?raw as Subject:'math'}
-export interface Assignment { id:number; subject:Subject; title:string; question:string; expected_answer?:string; max_score:number; created_at?:string }
+export interface Assignment { paper_id?:number;question_number?:number; id:number; subject:Subject; title:string; question:string; expected_answer?:string; max_score:number; created_at?:string }
 export const errorTagLabels:Record<string,string>={concept:"概念理解",calculation:"计算运算",reading:"审题理解",method:"方法选择",careless:"细节疏漏",other:"其他",unclassified:"未标注"}
 export interface FinalReview {error_tags?:string[];score:number;max_score:number;correct:boolean;feedback:string;version:number;reviewed_at:string}
 export interface GradeTask {

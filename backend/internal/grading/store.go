@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
-	"fmt"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -28,14 +27,14 @@ func (s *Store) CreateAssignment(ctx context.Context, classID, actor int64, inpu
 }
 func (s *Store) Assignment(ctx context.Context, classID, id int64) (Assignment, error) {
 	var a Assignment
-	err := s.DB.QueryRowContext(ctx, `SELECT id,class_id,subject,title,question,expected_answer,max_score,created_at FROM grade_assignments WHERE id=? AND class_id=?`, id, classID).Scan(&a.ID, &a.ClassID, &a.Subject, &a.Title, &a.Question, &a.ExpectedAnswer, &a.MaxScore, &a.CreatedAt)
+	err := s.DB.QueryRowContext(ctx, `SELECT a.id,a.class_id,a.subject,a.title,a.question,a.expected_answer,a.max_score,a.created_at,COALESCE(p.paper_id,0),COALESCE(p.position,0) FROM grade_assignments a LEFT JOIN published_paper_questions p ON p.assignment_id=a.id WHERE a.id=? AND a.class_id=?`, id, classID).Scan(&a.ID, &a.ClassID, &a.Subject, &a.Title, &a.Question, &a.ExpectedAnswer, &a.MaxScore, &a.CreatedAt, &a.PaperID, &a.QuestionNumber)
 	if err == sql.ErrNoRows {
 		err = ErrNotFound
 	}
 	return a, err
 }
 func (s *Store) Assignments(ctx context.Context, classID int64, subject string, page, size int) ([]Assignment, error) {
-	query := `SELECT id,class_id,subject,title,question,expected_answer,max_score,created_at FROM grade_assignments WHERE class_id=? AND subject=?`
+	query := `SELECT id,class_id,subject,title,question,expected_answer,max_score,created_at FROM grade_assignments WHERE class_id=? AND subject=? AND NOT EXISTS(SELECT 1 FROM published_paper_questions p WHERE p.assignment_id=grade_assignments.id)`
 	args := []any{classID, subject}
 	query += " ORDER BY id DESC LIMIT ? OFFSET ?"
 	args = append(args, size, int64(page-1)*int64(size))
@@ -59,10 +58,6 @@ func answerHash(answer string) string {
 	return hex.EncodeToString(hash[:])
 }
 func (s *Store) Submit(ctx context.Context, classID, student, assignmentID int64, key, answer string) (Receipt, error) {
-	task, err := newID()
-	if err != nil {
-		return Receipt{}, err
-	}
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return Receipt{}, err
@@ -75,7 +70,14 @@ func (s *Store) Submit(ctx context.Context, classID, student, assignmentID int64
 		}
 		return Receipt{}, err
 	}
-	res, err := tx.ExecContext(ctx, `INSERT INTO submissions(class_id,assignment_id,student_id,created_by,client_key,answer,answer_hash) VALUES(?,?,?,?,?,?,?)`, classID, assignmentID, student, student, key, answer, answerHash(answer))
+	var managed int
+	if err = tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM published_paper_questions WHERE assignment_id=?`, assignmentID).Scan(&managed); err != nil {
+		return Receipt{}, err
+	}
+	if managed > 0 {
+		return Receipt{}, ErrPaperManaged
+	}
+	out, err := InsertPending(ctx, tx, classID, student, assignmentID, key, answer)
 	if err != nil {
 		var duplicate *mysql.MySQLError
 		if errors.As(err, &duplicate) && duplicate.Number == 1062 {
@@ -93,20 +95,10 @@ func (s *Store) Submit(ctx context.Context, classID, student, assignmentID int64
 		}
 		return Receipt{}, err
 	}
-	id, err = res.LastInsertId()
-	if err != nil {
-		return Receipt{}, err
-	}
-	if _, err = tx.ExecContext(ctx, `INSERT INTO grade_tasks(task_id,submission_id,class_id,created_by,idempotency_key) VALUES(?,?,?,?,?)`, task, id, classID, student, fmt.Sprintf("grade:%d:v1", id)); err != nil {
-		return Receipt{}, err
-	}
-	if _, err = tx.ExecContext(ctx, `INSERT INTO grade_outbox(task_id,kind,generation) VALUES(?,'work',0)`, task); err != nil {
-		return Receipt{}, err
-	}
 	if err = tx.Commit(); err != nil {
 		return Receipt{}, err
 	}
-	return receipt(id, task, "pending"), nil
+	return out, nil
 }
 func (s *Store) Task(ctx context.Context, classID, actor int64, teacher bool, taskID string, submissionID int64) (Task, error) {
 	query := "SELECT " + taskColumns + taskJoins + " WHERE t.class_id=?"

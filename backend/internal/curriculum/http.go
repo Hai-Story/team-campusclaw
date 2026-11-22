@@ -75,13 +75,14 @@ func pathID(w http.ResponseWriter, r *http.Request) (int64, bool) {
 	}
 	return id, true
 }
-func decode(w http.ResponseWriter, r *http.Request, v any) bool {
+func decode(w http.ResponseWriter, r *http.Request, v any) bool { return decodeLimit(w, r, v, 128<<10) }
+func decodeLimit(w http.ResponseWriter, r *http.Request, v any, limit int64) bool {
 	media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || media != "application/json" {
 		write(w, 415, map[string]string{"error": "请使用application/json"})
 		return false
 	}
-	d := json.NewDecoder(http.MaxBytesReader(w, r.Body, 128<<10))
+	d := json.NewDecoder(http.MaxBytesReader(w, r.Body, limit))
 	d.DisallowUnknownFields()
 	err = d.Decode(v)
 	if err == nil {
@@ -158,6 +159,7 @@ func Mount(mux *http.ServeMux, s *Service, protect func(http.HandlerFunc) http.H
 	mountBank(mux, s, protect)
 	mountDiagnosis(mux, s, protect)
 	mountReview(mux, s, protect)
+	mountPublished(mux, s, protect)
 	mux.HandleFunc("GET /api/knowledge-points", protect(s.ListPoints))
 	mux.HandleFunc("POST /api/knowledge-points", protect(s.SavePoint))
 	mux.HandleFunc("GET /api/knowledge-points/{id}", protect(s.GetPoint))

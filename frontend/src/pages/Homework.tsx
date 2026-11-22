@@ -6,7 +6,7 @@ import ReviewDialog from '../components/ReviewDialog'
 import Icon from '../components/Icon'
 
 const empty={title:'',question:'',expected_answer:'',max_score:10}
-export default function Homework({me}:{me:Me}){
+export default function Homework({me,onOpenPaper}:{me:Me;onOpenPaper:(id:number,subject:Subject,question?:number)=>void}){
  const storage=`campusclaw_subject:${me.id}:${me.class_id}`
  const attempt=useRef(crypto.randomUUID())
  const [subject,setSubject]=useState<Subject>(()=>readSubject(sessionStorage.getItem(storage)))
@@ -31,6 +31,7 @@ export default function Homework({me}:{me:Me}){
     try{
      const linked=await request<Assignment>(`/api/assignments/${saved}`,{signal:control.signal})
      if(control.signal.aborted)return
+     if(linked.paper_id){onOpenPaper(linked.paper_id,linked.subject,linked.id);return}
      if(linked.subject!==subject)throw new Error('关联作业学科不一致，请重新选择。')
      data.items=[linked,...data.items.filter(x=>x.id!==linked.id)]
     }catch(e){
@@ -43,7 +44,7 @@ export default function Homework({me}:{me:Me}){
   })
    .catch(e=>{if(!control.signal.aborted)setListError(e instanceof Error?e.message:'作业读取失败')}).finally(()=>{if(!control.signal.aborted)setLoading(false)})
   return()=>control.abort()
- },[subject,page,refresh,storage])
+ },[subject,page,refresh,storage,onOpenPaper])
  useEffect(()=>{if(current)sessionStorage.setItem(`${storage}:${subject}`,String(current.id))},[current,storage,subject])
  useEffect(()=>{
   if(me.role!=='student'||!current)return
