@@ -30,12 +30,19 @@ func write(w http.ResponseWriter, status int, data any) {
 	}
 }
 func failure(w http.ResponseWriter, err error) {
+	var questionError *QuestionError
+	if errors.As(err, &questionError) {
+		write(w, 400, map[string]string{"error": questionError.Error()})
+		return
+	}
 	status, text := 503, "服务暂时不可用，请稍后重试"
 	switch {
 	case errors.Is(err, ErrNotFound):
 		status, text = 404, ErrNotFound.Error()
 	case errors.Is(err, ErrInvalid):
 		status, text = 400, ErrInvalid.Error()
+	case errors.Is(err, ErrDuplicateQuestion):
+		status, text = 409, ErrDuplicateQuestion.Error()
 	case errors.Is(err, ErrConflict):
 		status, text = 409, ErrConflict.Error()
 	case errors.Is(err, ErrEvidence):
@@ -146,6 +153,7 @@ func Mount(mux *http.ServeMux, s *Service, protect func(http.HandlerFunc) http.H
 	mountLessons(mux, s, protect)
 	mountWalks(mux, s, protect)
 	mountGraph(mux, s, protect)
+	mountBank(mux, s, protect)
 	mux.HandleFunc("GET /api/knowledge-points", protect(s.ListPoints))
 	mux.HandleFunc("POST /api/knowledge-points", protect(s.SavePoint))
 	mux.HandleFunc("GET /api/knowledge-points/{id}", protect(s.GetPoint))

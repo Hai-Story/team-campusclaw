@@ -58,6 +58,7 @@ def run(c):
         ref=candidate['citations'][0];chunk=ref['chunk_id'];original=c.sql('SELECT HEX(chunk_text) FROM knowledge_chunks WHERE id='+str(chunk))[0][0]
         try:
             c.sql("UPDATE knowledge_chunks SET chunk_text=CONCAT(chunk_text,' changed') WHERE id="+str(chunk));assert req(path+'/approve',{'expected_version':2})[0]==409
+            listed=next(v for v in req('/api/knowledge-graph/drafts?page_size=100')[1]['items'] if v['id']==candidate['id']);assert any(not ref['available'] and not ref['excerpt'] for ref in listed['citations'])
             assert not any(n['name']==prefix+'-candidate' for n in graph()['nodes'])
         finally:c.sql("UPDATE knowledge_chunks SET chunk_text=UNHEX('"+original+"') WHERE id="+str(chunk))
         cyclic={'nodes':[{'name':prefix+'-candidate','chapter':'','description':''}],'edges':[{'from':C['name'],'to':A['name'],'kind':'prerequisite'}],'citation_indices':[1],'expected_version':2}

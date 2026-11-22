@@ -80,7 +80,19 @@ func (s *Store) GraphDrafts(ctx context.Context, u auth.User, f PointFilter) ([]
 		}
 		out = append(out, v)
 	}
-	return out, rows.Err()
+	e = rows.Err()
+	rows.Close()
+	if e != nil {
+		return nil, e
+	}
+	cache := map[string][]Evidence{}
+	for i := range out {
+		out[i].Citations, e = resolveReferences(ctx, s.DB, u, out[i].Citations, cache)
+		if e != nil {
+			return nil, e
+		}
+	}
+	return out, nil
 }
 func graphCatalog(ctx context.Context, q interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
@@ -326,4 +338,6 @@ func (s *Store) ApproveGraphDraft(ctx context.Context, u auth.User, id int64, ve
 	return v, tx.Commit()
 }
 
-func (s *Store) GraphCatalog(ctx context.Context, u auth.User, subject string) (map[string]int64,error) { return graphCatalog(ctx,s.DB,u.ClassID,subject) }
+func (s *Store) GraphCatalog(ctx context.Context, u auth.User, subject string) (map[string]int64, error) {
+	return graphCatalog(ctx, s.DB, u.ClassID, subject)
+}

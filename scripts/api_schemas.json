@@ -1735,5 +1735,519 @@
         "format": "date-time"
       }
     }
+  },
+  "QuestionItem": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "type",
+      "stem",
+      "options",
+      "answer",
+      "explanation",
+      "knowledge_point_ids",
+      "difficulty",
+      "citation_indices"
+    ],
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "single_choice",
+          "multiple_choice",
+          "true_false",
+          "short_answer"
+        ]
+      },
+      "stem": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "maxItems": 8
+      },
+      "answer": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "minItems": 1,
+        "maxItems": 8
+      },
+      "explanation": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true
+      },
+      "difficulty": {
+        "type": "string",
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ]
+      },
+      "citation_indices": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minItems": 1,
+        "maxItems": 6,
+        "uniqueItems": true
+      }
+    },
+    "description": "单选答案1个、多选至少2个A-H有效字母；判断无选项且答案true/false；简答无选项且单个参考答案。"
+  },
+  "BankInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "material_ids",
+      "client_key",
+      "knowledge_point_ids",
+      "question_types",
+      "difficulty",
+      "question_count"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "material_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true
+      },
+      "question_types": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "single_choice",
+            "multiple_choice",
+            "true_false",
+            "short_answer"
+          ]
+        },
+        "minItems": 1,
+        "maxItems": 4,
+        "uniqueItems": true
+      },
+      "difficulty": {
+        "type": "string",
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ]
+      },
+      "question_count": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10
+      }
+    }
+  },
+  "QuestionDraft": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "input",
+      "questions",
+      "citations",
+      "bank_ids",
+      "status",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "input": {
+        "$ref": "#/components/schemas/BankInput"
+      },
+      "questions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/QuestionItem"
+        },
+        "minItems": 1,
+        "maxItems": 10
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "bank_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved"
+        ]
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "BankQuestion": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "question",
+      "citations",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "question": {
+        "$ref": "#/components/schemas/QuestionItem"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "PaperInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "title",
+      "items",
+      "client_key"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "question_id",
+            "question_version",
+            "score"
+          ],
+          "properties": {
+            "question_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "question_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "minItems": 1,
+        "maxItems": 50
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    },
+    "description": "总分最多1000；同一题目不得重复；新选题须当前本人题库版本。"
+  },
+  "PaperUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "title",
+      "items",
+      "expected_version"
+    ],
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "question_id",
+            "question_version",
+            "score"
+          ],
+          "properties": {
+            "question_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "question_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "minItems": 1,
+        "maxItems": 50
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "PaperSummary": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "total_score",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "total_score": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "PaperDraft": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "items",
+      "total_score",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "total_score": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "question_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "question_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "question": {
+              "$ref": "#/components/schemas/QuestionItem"
+            },
+            "citations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
