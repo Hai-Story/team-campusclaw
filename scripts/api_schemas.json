@@ -849,5 +849,188 @@
         "maximum": 100
       }
     }
+  },
+  "KnowledgePointInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "name"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "material_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignment_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "KnowledgePointUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "name",
+      "expected_version"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "material_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignment_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "KnowledgePoint": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "name",
+      "chapter",
+      "description",
+      "version",
+      "material_ids",
+      "assignment_ids",
+      "favorite",
+      "created_at",
+      "updated_at"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "science",
+          "morality"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "material_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignment_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "id": {
+        "type": "integer"
+      },
+      "version": {
+        "type": "integer"
+      },
+      "favorite": {
+        "type": "boolean"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
   }
 }

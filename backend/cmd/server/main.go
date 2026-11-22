@@ -15,6 +15,7 @@ import (
 	"campusclaw/backend/internal/apidocs"
 	"campusclaw/backend/internal/auth"
 	"campusclaw/backend/internal/config"
+	"campusclaw/backend/internal/curriculum"
 	"campusclaw/backend/internal/db"
 	"campusclaw/backend/internal/grading"
 	"campusclaw/backend/internal/materials"
@@ -63,6 +64,9 @@ func main() {
 	if err := grading.Migrate(d); err != nil {
 		log.Fatal("作业迁移失败")
 	}
+	if err := curriculum.Migrate(d); err != nil {
+		log.Fatal("课程资源迁移失败")
+	}
 
 	authSvc := auth.NewService(d, cfg)
 	matSvc := materials.NewService(d, cfg)
@@ -104,6 +108,7 @@ func main() {
 	apidocs.Mount(mux)
 	runtimehttp.Probes(mux, d, cfg.Version, cfg.QdrantURL, strings.Split(os.Getenv("MCP_ALLOWED_BASE_URLS"), ",")[0])
 	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}, Model: gradeSettings}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
+	curriculum.Mount(mux, &curriculum.Service{Store: &curriculum.Store{DB: d}}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 
 	mux.HandleFunc("POST /api/login", dbGuard(authSvc.Login))
 	mux.HandleFunc("POST /api/logout", dbGuard(authSvc.Logout))

@@ -546,3 +546,22 @@ h1,h2,h3 { line-height:1.35; }
 .homework-form select{font:inherit;width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;color:var(--text);background:var(--panel)}
 
 .mistake-explanation{margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}.explanation-text{margin-top:16px;padding:16px;background:var(--bg);border-radius:12px}.explanation-text p{white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}
+
+/* Knowledge-point workspace uses the existing panel and form tokens. */
+.knowledge-tools{display:flex;align-items:end;gap:16px;flex-wrap:wrap;margin:20px 0}
+.knowledge-tools>label:first-child{flex:1;min-width:200px;display:grid;gap:8px}
+.knowledge-form{display:grid;gap:16px}.knowledge-form>label{display:grid;gap:8px}
+.knowledge-form .binding-grid fieldset{min-width:0;max-height:360px;overflow:auto}
+.knowledge-page button{min-height:44px}.knowledge-page .check-row{min-height:44px}
+.knowledge-page .check-row input{width:18px;height:18px;flex:0 0 18px}
+.knowledge-description{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+.knowledge-links{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 24px}
+.knowledge-links button{white-space:normal;text-align:left;overflow-wrap:anywhere;max-width:100%}
+.knowledge-page h2,.knowledge-page strong{overflow-wrap:anywhere}
+@media(max-width:768px){.knowledge-tools{align-items:stretch}.knowledge-tools>label:first-child{min-width:0;flex-basis:100%}.knowledge-form .binding-grid{grid-template-columns:1fr}}
+
+.knowledge-page .assignment-list{display:grid;gap:8px;margin:16px 0}
+.knowledge-page .assignment-item{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;width:100%;text-align:left;white-space:normal}
+.knowledge-page .assignment-item span{color:var(--text-dim);font-size:14px}
+.knowledge-page .assignment-item.active{border-color:var(--brand);background:var(--brand-soft)}
+.knowledge-form input:not([type=checkbox]),.knowledge-form textarea,.knowledge-form select,.knowledge-tools input:not([type=checkbox]){box-sizing:border-box;width:100%;min-width:0;padding:12px;border:1px solid var(--border);border-radius:8px;color:var(--text);background:var(--panel);font:inherit}
