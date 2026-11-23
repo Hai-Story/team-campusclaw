@@ -53,28 +53,28 @@ def run(c):
     assert c.sql(f'SELECT version FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid};')==[['4'],['4']]
 
     # A real foreign-class row in the isolated fixture; no production data involved.
-    foreign=int(c.sql("INSERT INTO grade_assignments(class_id,created_by,subject,title,question,expected_answer,max_score) SELECT b.class_id,a.id,'science','foreign-fixture','q','2',10 FROM users b JOIN users a ON a.username='teacher_a' WHERE b.username='student_b1'; SELECT LAST_INSERT_ID();")[0][0]);c.assignments.append(foreign)
+    foreign=int(c.sql("INSERT INTO grade_assignments(class_id,created_by,subject,title,question,expected_answer,max_score) SELECT b.class_id,a.id,'physics','foreign-fixture','q','2',10 FROM users b JOIN users a ON a.username='teacher_a' WHERE b.username='student_b1'; SELECT LAST_INSERT_ID();")[0][0]);c.assignments.append(foreign)
     c.control(delay_ms=10,statuses=[],correct=False)
     code,foreign_receipt,_,_=c.request(f'/api/assignments/{foreign}/submissions',{'answer':'2'},who='other',headers={'Idempotency-Key':c.run_id+'-foreign'})
     assert code==202
     assert judge(foreign_receipt['submission_id'],False,0)[0]==404
     assert c.request(f'/api/assignments/{foreign}/submissions',who='teacher')[0]==404
     assert c.request(f'/api/assignments/{foreign}/my-submission')[0]==404
-    assert foreign not in mistakes('science')
+    assert foreign not in mistakes('physics')
 
     c.control(delay_ms=500,statuses=[],correct=False)
-    late=c.assignment(subject='science');r=c.submit(late)[1]
+    late=c.assignment(subject='physics');r=c.submit(late)[1]
     assert judge(r['submission_id'],True,7)[0]==200
     t=c.wait(r['task_id']);assert t['result']['correct'] is False and t['final_review']['correct'] is True and t['final_review']['score']==7
     c.compose('exec','-T','worker','/app/grade-worker','-publish',r['task_id'])
     for _ in range(10):assert c.task(r['task_id'])['final_review']['version']==1
-    assert late not in mistakes('science')
+    assert late not in mistakes('physics')
     c.control(delay_ms=10,statuses=[],correct=False)
-    science=c.assignment(subject='science');r=c.submit(science)[1];c.wait(r['task_id'])
-    assert science in mistakes('science') and science not in mistakes('math')
+    science=c.assignment(subject='physics');r=c.submit(science)[1];c.wait(r['task_id'])
+    assert science in mistakes('physics') and science not in mistakes('math')
     c.control(delay_ms=10,statuses=[],correct=True)
     r=c.submit(science,answer='3')[1];c.wait(r['task_id'])
-    assert science not in mistakes('science'),'latest correct attempt must replace the old mistake'
+    assert science not in mistakes('physics'),'latest correct attempt must replace the old mistake'
     c.control(delay_ms=10,statuses=[401])
     failed=c.assignment();r=c.submit(failed)[1];assert c.wait(r['task_id'])['status']=='failed'
     assert judge(r['submission_id'],False,0)[0]==200

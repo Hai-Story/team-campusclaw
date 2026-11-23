@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { categories,materialCategory,latestRequest } from '../src/library.ts'
-assert.equal(materialCategory('A班–小学科学课程资料.md'),'科学')
-assert.equal(materialCategory('语文自学笔记.md'),'语文')
-assert.equal(materialCategory('方程与分数.txt'),'数学')
-assert.equal(materialCategory('English reading.md'),'英语')
+assert.equal(materialCategory('A班–小学科学课程资料.md'),'⚛️ 物理')
+assert.equal(materialCategory('语文自学笔记.md'),'📖 语文')
+assert.equal(materialCategory('方程与分数.txt'),'🔢 数学')
+assert.equal(materialCategory('English reading.md'),'🔤 英语')
 assert.equal(materialCategory('劳动教育.md'),'其他')
 assert.equal(materialCategory('作业5测试讲义.md'),'其他')
 const gate=latestRequest(),list=latestRequest(),old=gate.begin(),current=gate.begin()
@@ -20,6 +20,16 @@ globalThis.fetch=async()=>new Response(JSON.stringify({error:'未登录'}),{stat
 await assert.rejects(materialFile(12),/未登录/);assert.equal(expired,1);assert.equal(values.has('campusclaw_token'),false)
 console.log('PASS: material classification, stale selection/unmount protection and authenticated downloads')
 
-assert.deepEqual(categories,['语文','数学','英语','科学','思想品德','其他'])
-assert.equal(materialCategory('道德与法治.md'),'思想品德')
-assert.equal(materialCategory('思想品德讲义.md'),'思想品德')
+assert.deepEqual(categories,["📖 语文", "🔢 数学", "🔤 英语", "⚛️ 物理", "⚗️ 化学", "🌱 生物", "⚖️ 政治", "🏛️ 历史", "🌍 地理", "其他"])
+assert.equal(materialCategory('道德与法治.md'),'⚖️ 政治')
+assert.equal(materialCategory('思想品德讲义.md'),'⚖️ 政治')
+
+assert.equal(materialCategory('语文讲义.md'),'📖 语文')
+assert.equal(materialCategory('数学讲义.md'),'🔢 数学')
+assert.equal(materialCategory('英语讲义.md'),'🔤 英语')
+assert.equal(materialCategory('物理讲义.md'),'⚛️ 物理')
+assert.equal(materialCategory('化学讲义.md'),'⚗️ 化学')
+assert.equal(materialCategory('生物讲义.md'),'🌱 生物')
+assert.equal(materialCategory('政治讲义.md'),'⚖️ 政治')
+assert.equal(materialCategory('历史讲义.md'),'🏛️ 历史')
+assert.equal(materialCategory('地理讲义.md'),'🌍 地理')

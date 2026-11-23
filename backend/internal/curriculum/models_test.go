@@ -8,7 +8,7 @@ import (
 
 // K1-S2/K2-S1: validate actual accepted/rejected inputs, including zero/false boundaries.
 func TestPointValidation(t *testing.T) {
-	for _, subject := range []string{"chinese", "math", "english", "science", "morality"} {
+	for _, subject := range []string{"chinese", "math", "english", "physics", "chemistry", "biology", "politics", "history", "geography"} {
 		in := PointInput{Subject: subject, Name: " 分数 ", MaterialIDs: []int64{1}}
 		if err := in.Validate(false); err != nil || in.Name != "分数" {
 			t.Fatal(in, err)

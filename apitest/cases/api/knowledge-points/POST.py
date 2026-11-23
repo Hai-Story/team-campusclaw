@@ -16,13 +16,13 @@ def run(c):
         c.token('teacher');c.token('student');c.token('peer');c.token('other')
         assert req('/api/knowledge-points',who=None)[0]==401
         assert req('/api/knowledge-points',{'subject':'math','name':'x'},who='student')[0]==403
-        math=c.assignment(subject='math');science=c.assignment(subject='science')
+        math=c.assignment(subject='math');science=c.assignment(subject='physics')
         materials=req('/api/materials')[1]
         own_material=materials[0]['id']
         foreign_material=req('/api/materials',who='other')[1][0]['id']
         p,body=create(material_ids=[own_material],assignment_ids=[math])
         assert p['version']==1 and p['material_ids']==[own_material] and p['assignment_ids']==[math] and p['favorite'] is False
-        for subject in ['chinese','english','science','morality']:
+        for subject in ['chinese','english','physics','chemistry','biology','politics','history','geography']:
             item,_=create(subject)
             code,listing=req('/api/knowledge-points?subject='+subject,who='student')
             assert code==200 and all(x['subject']==subject for x in listing['items']) and item['id'] in [x['id'] for x in listing['items']]
@@ -60,6 +60,6 @@ def run(c):
         assert req(path)[0]==404
         assert req('/api/materials/'+str(own_material))[0]==200
         assert req('/api/assignments/'+str(math))[0]==200
-        return {'subjects':5,'cross_class':'same 404','invalid_links':'atomic rollback','concurrent_update':sorted(outcomes),'favorites':'isolated/idempotent','original_resources':'preserved'}
+        return {'subjects':9,'cross_class':'same 404','invalid_links':'atomic rollback','concurrent_update':sorted(outcomes),'favorites':'isolated/idempotent','original_resources':'preserved'}
     finally:
         if points:c.sql('DELETE FROM knowledge_points WHERE id IN ('+','.join(str(int(x)) for x in points)+')')

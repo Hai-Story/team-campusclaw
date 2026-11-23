@@ -6,7 +6,7 @@ def run(c):
     uid=None
     def request(body,who='student'):return c.request('/api/learning-diagnosis/explanation',body,who=who,timeout=130)[:2]
     def report(who='student'):
-        code,data,_,_=c.request('/api/learning-diagnosis?subject=morality',who=who);assert code==200;return data
+        code,data,_,_=c.request('/api/learning-diagnosis?subject=politics',who=who);assert code==200;return data
     def wait_calls():
         for _ in range(60):
             if c.fixture('/stats')['calls']:return
@@ -20,9 +20,9 @@ def run(c):
         uid=int(c.sql("SELECT id FROM users WHERE username='"+username+"'")[0][0])
         code,login,_,_=c.request('/api/login',{'username':username,'password':c.env['SEED_STUDENT_PASSWORD']},who=None);assert code==200;c.tokens['diag_empty']=login['token']
         empty=report('diag_empty');assert empty['samples']==0
-        c.control();code,data=request({'subject':'morality','days':30,'fingerprint':empty['fingerprint']},'diag_empty');assert code==200 and data['status']=='insufficient_data' and c.fixture('/stats')['calls']==0
-        aid=c.assignment(subject='morality');c.control(correct=False);r=c.submit(aid,answer='合成作答')[1];c.wait(r['task_id']);sid=r['submission_id'];review(sid,0,4)
-        v=report();body={'subject':'morality','days':30,'fingerprint':v['fingerprint']};c.control()
+        c.control();code,data=request({'subject':'politics','days':30,'fingerprint':empty['fingerprint']},'diag_empty');assert code==200 and data['status']=='insufficient_data' and c.fixture('/stats')['calls']==0
+        aid=c.assignment(subject='politics');c.control(correct=False);r=c.submit(aid,answer='合成作答')[1];c.wait(r['task_id']);sid=r['submission_id'];review(sid,0,4)
+        v=report();body={'subject':'politics','days':30,'fingerprint':v['fingerprint']};c.control()
         assert request(body,who=None)[0]==401
         for patch in [{'class_id':1},{'student_id':uid},{'days':0},{'subject':'all'},{'fingerprint':'bad'},{'fingerprint':'F'*64}]:assert request({**body,**patch})[0]==400,patch
         assert request({**body,'fingerprint':'0'*64})[0]==409

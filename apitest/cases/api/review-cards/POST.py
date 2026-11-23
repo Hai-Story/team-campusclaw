@@ -28,8 +28,8 @@ def run(c):
         for body in [None,[],{'student_id':uid}]:assert req('/api/review-cards/sync',body,method='POST')[0]==400
         settings=req('/api/review-settings')[1]
         if settings['intervals']!=[1,3,7,14,30]:assert req('/api/review-settings',{'intervals':[1,3,7,14,30],'expected_version':settings['version']},method='PUT')[0]==200
-        mid=point();science=point('science','science');sync();a=card('favorite',mid);same=c.sql('CHECKSUM TABLE review_cards');sync();assert card('favorite',mid)==a and c.sql('CHECKSUM TABLE review_cards')==same
-        assert any(v['source_id']==science for v in report('science')['items'])
+        mid=point();science=point('physics','physics');sync();a=card('favorite',mid);same=c.sql('CHECKSUM TABLE review_cards');sync();assert card('favorite',mid)==a and c.sql('CHECKSUM TABLE review_cards')==same
+        assert any(v['source_id']==science for v in report('physics')['items'])
         assert mid not in {v['source_id'] for v in report(who='peer')['items']};assert mid not in {v['source_id'] for v in report(who='other')['items']}
         missing=req('/api/review-cards/999999999/complete',{'feedback':'good','client_key':'private','expected_version':1},who='peer')
         assert missing[0]==404 and complete(a,key='private',who='peer')==missing and complete(a,key='private',who='other')==missing

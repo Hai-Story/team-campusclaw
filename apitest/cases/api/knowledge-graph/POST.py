@@ -32,7 +32,7 @@ def run(c):
         edgeid=first[1]['id'];assert req('/api/knowledge-graph/edges/'+str(edgeid),{'expected_version':2},method='DELETE')[0]==409
         assert req('/api/knowledge-graph/edges/'+str(edgeid),{'expected_version':1},method='DELETE')[0]==204
         assert req('/api/knowledge-graph/nodes/'+str(A['id'])+'/resources',who='other')==req('/api/knowledge-graph/nodes/9223372036854775807/resources',who='other')
-        assert req('/api/knowledge-points/'+str(A['id']),{'subject':'science','name':A['name'],'chapter':'','description':'','material_ids':[],'assignment_ids':[],'expected_version':1},method='PUT')[0]==409
+        assert req('/api/knowledge-points/'+str(A['id']),{'subject':'physics','name':A['name'],'chapter':'','description':'','material_ids':[],'assignment_ids':[],'expected_version':1},method='PUT')[0]==409
         r=resource(B['id']);assert any(n['id']==A['id'] for n in r['recommended_points']) and any(m['id']==mid for m in r['review_materials'])
         c.control(correct=False);receipt=c.submit(aid,answer='不完整的合成作答')[1];assert c.wait(receipt['task_id'])['status']=='succeeded'
         r=resource(A['id']);assert r['reviewed']==0 and not r['weak'] and len(r['mistakes'])==1
@@ -49,7 +49,7 @@ def run(c):
         candidate,body=generated([{'name':prefix+'-candidate','chapter':'章节','description':'候选说明'}]);path='/api/knowledge-graph/drafts/'+str(candidate['id'])
         assert not any(n['name']==prefix+'-candidate' for n in graph('student')['nodes'])
         c.control();assert req('/api/knowledge-graph/drafts/generate',body)[1]['draft']['id']==candidate['id'] and gate()['calls']==0
-        assert req('/api/knowledge-graph/drafts/generate',{**body,'subject':'science'})[0]==409
+        assert req('/api/knowledge-graph/drafts/generate',{**body,'subject':'physics'})[0]==409
         assert req(path,who='student')[0]==403
         username='graph_teacher_'+c.run_id;c.sql("INSERT INTO users(username,password_hash,role,class_id) SELECT '"+username+"',password_hash,'teacher',class_id FROM users WHERE username='teacher_a'");teacher2=int(c.sql("SELECT id FROM users WHERE username='"+username+"'")[0][0]);token2=req('/api/login',{'username':username,'password':c.env['SEED_TEACHER_PASSWORD']},who=None)[1]['token'];assert req(path,who='teacher2')==req('/api/knowledge-graph/drafts/9223372036854775807',who='teacher2')
         edit={'nodes':candidate['nodes'],'edges':[],'citation_indices':[1],'expected_version':1}

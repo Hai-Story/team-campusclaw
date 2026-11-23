@@ -57,7 +57,7 @@ def run(c):
         code,paper=req('/api/paper-drafts',paperbody);assert code==201 and paper['total_score']==30;papers.append(paper['id']);pp='/api/paper-drafts/'+str(paper['id']);assert req('/api/paper-drafts',paperbody)[1]['id']==paper['id'];assert req('/api/paper-drafts',{**paperbody,'title':'different'})[0]==409
         assert req(pp,who='student')[0]==403 and req(pp,who='teacher2')==req('/api/paper-drafts/9223372036854775807',who='teacher2')
         for change in [{'title':''},{'items':[selection[0],selection[0]]},{'items':[{'question_id':ids[0],'question_version':0,'score':10}]},{'items':[{'question_id':i,'question_version':1,'score':100} for i in range(1,12)]}]:assert req('/api/paper-drafts',{**paperbody,**change,'client_key':prefix+'-bad-'+uuid.uuid4().hex[:4]})[0]==400,change
-        assert req('/api/paper-drafts',{**paperbody,'subject':'science','client_key':prefix+'-wrong-subject'})[0]==404
+        assert req('/api/paper-drafts',{**paperbody,'subject':'physics','client_key':prefix+'-wrong-subject'})[0]==404
         revised={**q0['question'],'stem':q0['question']['stem']+' 修订'};update={'question':revised,'expected_version':1,'confirm_review':True}
         assert req('/api/bank-questions/'+str(q0['id']),{**update,'confirm_review':False},method='PUT')[0]==400
         with ThreadPoolExecutor(max_workers=2) as pool:codes=list(pool.map(lambda _:req('/api/bank-questions/'+str(q0['id']),update,method='PUT')[0],range(2)))
