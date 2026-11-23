@@ -21,3 +21,10 @@ make precheck
 入口创建本次专属资料和作业，使用A教师、A1与B学生账号，自动登录并清理本次数据；不在命令行传递口令。查看SEC-02中的`cross_status=404`、`missing_status=404`、`business_response_equal=true`、`own_keyword_hits=1`、`foreign_keyword_hits=0`。脚本退出1、make退出2来自SEC-07日志缺字段，不能把它误记成权限失败。
 
 关键字模式用于本次唯一词判据；本地恒定嵌入替身不验证语义检索质量。AI初判由worker写入，终评分数仅由本班教师写入。教师跨班终评404、学生终评403，以及并发版本和历史回滚，另由`python3 apitest/run_all.py --case review`复现。
+
+
+## 2026-11-16 审计权限
+
+日期：2026-11-16。HEAD `c0d35f0004f60a3a6ec7cac6827dc15061e9ba1a` 加本地工作树；源码及测试指纹 `92ad079a3cad936a48a28b19ee96acec52ffa1cfaee5d4a2defa9cdc7a2a4197`。未创建提交或推送。
+
+`make precheck`退出0，原SEC-01至04及07复放通过；本轮持久审计、注入反例及真实SEC-08见[安全检查](security-fix-log.md)、[审计回查](audit-recheck.md)与[模型实验](sec08-experiment.md)。教师只查本班审计，学生403，跨班详情与不存在同形404；无业务数据变化。历史记录保留原受测范围，本段为本轮当前结果。
