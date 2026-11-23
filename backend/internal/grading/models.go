@@ -60,7 +60,7 @@ func (a *AssignmentInput) Validate() error {
 
 func ValidSubject(subject string) bool {
 	switch subject {
-	case "chinese", "math", "english", "science", "morality":
+	case "chinese", "math", "english", "physics", "chemistry", "biology", "politics", "history", "geography":
 		return true
 	}
 	return false

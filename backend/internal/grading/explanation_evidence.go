@@ -2,6 +2,7 @@ package grading
 
 import (
 	"campusclaw/backend/internal/retrieval"
+	"campusclaw/backend/internal/subjects"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -25,18 +26,7 @@ type ExplanationResponse struct {
 	Citations   []ExplanationCitation `json:"citations"`
 }
 
-var materialSubjects = []struct{ key, pattern string }{
-	{"chinese", `语文|阅读|作文|古诗|春晓|chinese`}, {"math", `数学|方程|分数|几何|math`}, {"english", `英语|english`}, {"science", `科学|物理|化学|生物|磁铁|science`}, {"morality", `思想品德|品德|道德|法治|思政|政治|morality|ethics`},
-}
-
-func materialSubject(title string) string {
-	for _, x := range materialSubjects {
-		if regexp.MustCompile("(?i)" + x.pattern).MatchString(title) {
-			return x.key
-		}
-	}
-	return "other"
-}
+func materialSubject(title string) string { return subjects.Classify(title) }
 func (s *Store) ExplanationMaterials(ctx context.Context, w Work) ([]int64, error) {
 	rows, e := s.DB.QueryContext(ctx, `SELECT id,title FROM materials WHERE class_id=? ORDER BY id`, w.ClassID)
 	if e != nil {

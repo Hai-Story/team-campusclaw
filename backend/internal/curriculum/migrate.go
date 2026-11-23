@@ -48,6 +48,12 @@ func Migrate(db *sql.DB) error {
 		if e != nil {
 			return e
 		}
+		if entry.Name() == "008_nine_subjects.sql" {
+			if err = migrateSubjects(ctx, conn, entry.Name(), string(data)); err != nil {
+				return err
+			}
+			continue
+		}
 		for _, q := range strings.Split(string(data), ";") {
 			if strings.TrimSpace(q) != "" {
 				if _, err = conn.ExecContext(ctx, q); err != nil {
@@ -60,4 +66,27 @@ func Migrate(db *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+// DML and the version marker commit together; failed classification cannot leave
+// a raw transaction open on a pooled connection or partially move related rows.
+func migrateSubjects(ctx context.Context, conn *sql.Conn, version, script string) error {
+	tx, err := conn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, statement := range strings.Split(script, ";") {
+		q := strings.TrimSpace(statement)
+		if q == "" || q == "START TRANSACTION" || q == "COMMIT" {
+			continue
+		}
+		if _, err = tx.ExecContext(ctx, q); err != nil {
+			return fmt.Errorf("curriculum migration %s: %w", version, err)
+		}
+	}
+	if _, err = tx.ExecContext(ctx, "INSERT INTO curriculum_migrations(version) VALUES(?)", version); err != nil {
+		return err
+	}
+	return tx.Commit()
 }

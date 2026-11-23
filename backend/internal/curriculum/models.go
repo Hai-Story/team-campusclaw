@@ -12,7 +12,7 @@ var ErrConflict = errors.New("记录已更新或名称重复，请重新加载")
 
 func ValidSubject(s string) bool {
 	switch s {
-	case "chinese", "math", "english", "science", "morality":
+	case "chinese", "math", "english", "physics", "chemistry", "biology", "politics", "history", "geography":
 		return true
 	}
 	return false

@@ -1485,8 +1485,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -1829,8 +1833,12 @@
                       "chinese",
                       "math",
                       "english",
-                      "science",
-                      "morality"
+                      "physics",
+                      "chemistry",
+                      "biology",
+                      "politics",
+                      "history",
+                      "geography"
                     ]
                   }
                 },
@@ -1953,8 +1961,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -2667,8 +2679,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -3309,8 +3325,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -3332,6 +3352,264 @@
               "minimum": 1,
               "maximum": 100,
               "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/api/homework-notifications": {
+      "get": {
+        "summary": "读取本人本班作业提醒与未读数",
+        "description": " 仅学生可使用。",
+        "operationId": "get_api_homework_notifications",
+        "tags": [
+          "homework-notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "读取本人本班作业提醒与未读数",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "page",
+                    "page_size",
+                    "unread_count"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "kind",
+                          "resource_id",
+                          "subject",
+                          "title",
+                          "created_at",
+                          "read_at"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "assignment",
+                              "paper"
+                            ]
+                          },
+                          "resource_id": {
+                            "type": "integer"
+                          },
+                          "subject": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "read_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "page_size": {
+                      "type": "integer"
+                    },
+                    "unread_count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "分页参数非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "分页参数非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可读取",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可读取"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/api/homework-notifications/{id}/read": {
+      "put": {
+        "summary": "幂等标记本人本班提醒已读",
+        "description": " 仅学生可使用。",
+        "operationId": "put_api_homework_notifications_id_read",
+        "tags": [
+          "homework-notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "幂等标记本人本班提醒已读"
+          },
+          "400": {
+            "description": "标识非法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "标识非法"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "需要登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "需要登录"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "仅学生可修改",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "仅学生可修改"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "资源不存在"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "服务暂时不可用"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
             }
           }
         ]
@@ -3424,8 +3702,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -3730,8 +4012,12 @@
                       "chinese",
                       "math",
                       "english",
-                      "science",
-                      "morality"
+                      "physics",
+                      "chemistry",
+                      "biology",
+                      "politics",
+                      "history",
+                      "geography"
                     ]
                   },
                   "days": {
@@ -4038,8 +4324,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -4567,8 +4857,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -5761,8 +6055,12 @@
                 "chinese",
                 "math",
                 "english",
-                "science",
-                "morality"
+                "physics",
+                "chemistry",
+                "biology",
+                "politics",
+                "history",
+                "geography"
               ],
               "default": "math"
             }
@@ -14311,8 +14609,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "paper_id": {
@@ -14525,8 +14827,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -14589,8 +14895,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "name": {
@@ -14641,8 +14951,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "name": {
@@ -14704,8 +15018,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "name": {
@@ -14777,8 +15095,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "chapter": {
@@ -14837,8 +15159,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -14882,8 +15208,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -15110,8 +15440,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "material_ids": {
@@ -15561,8 +15895,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "material_ids": {
@@ -15642,8 +15980,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "input": {
@@ -15711,8 +16053,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "question": {
@@ -15754,8 +16100,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -15868,8 +16218,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -15917,8 +16271,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -16290,8 +16648,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {
@@ -16515,8 +16877,12 @@
               "chinese",
               "math",
               "english",
-              "science",
-              "morality"
+              "physics",
+              "chemistry",
+              "biology",
+              "politics",
+              "history",
+              "geography"
             ]
           },
           "title": {

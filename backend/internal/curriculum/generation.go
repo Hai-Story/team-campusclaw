@@ -2,6 +2,7 @@ package curriculum
 
 import (
 	"bytes"
+	"campusclaw/backend/internal/observability"
 	"context"
 	"encoding/json"
 	"errors"
@@ -51,8 +52,18 @@ func (g *ChatGenerator) Generate(ctx context.Context, key, system string, input 
 			return "", nil, ctx.Err()
 		}
 		call, cancel := context.WithTimeout(ctx, budget)
+		skillID := "structured-generation"
+		for prefix, name := range map[string]string{"lesson-": LessonVersion, "bank-": BankVersion, "graph-": GraphVersion, "diagnosis-": DiagnosisVersion, "walk-": WalkVersion} {
+			if strings.HasPrefix(key, prefix) {
+				skillID = name
+				break
+			}
+		}
+		observability.Ensure(ctx, skillID, g.Model)
+		call, callID := observability.Begin(call, g.Model, "structured")
 		req, e := http.NewRequestWithContext(call, "POST", strings.TrimRight(g.BaseURL, "/")+"/chat/completions", bytes.NewReader(body))
 		if e != nil {
+			observability.End(call, callID, e)
 			cancel()
 			return "", nil, ErrModel
 		}
@@ -66,6 +77,22 @@ func (g *ChatGenerator) Generate(ctx context.Context, key, system string, input 
 			res.Body.Close()
 			retry = res.StatusCode == 429 || res.StatusCode >= 500
 			if res.StatusCode == 200 {
+				if readErr == nil && len(raw) <= 262144 {
+					var usage struct {
+						Usage json.RawMessage `json:"usage"`
+					}
+					if json.Unmarshal(raw, &usage) == nil {
+						var u ModelUsage
+						if json.Unmarshal(usage.Usage, &u) == nil && u.PromptTokens >= 0 && u.CompletionTokens >= 0 {
+							var fields map[string]json.RawMessage
+							if json.Unmarshal(usage.Usage, &fields) == nil && fields["prompt_tokens"] != nil && string(fields["prompt_tokens"]) != "null" && fields["completion_tokens"] != nil && string(fields["completion_tokens"]) != "null" {
+								v, _ := json.Marshal(map[string]int{"prompt_tokens": u.PromptTokens, "completion_tokens": u.CompletionTokens, "total_tokens": u.PromptTokens + u.CompletionTokens})
+								observability.Usage(call, v)
+							}
+						}
+					}
+				}
+				observability.End(call, callID, readErr)
 				cancel()
 				if readErr != nil || len(raw) > 262144 {
 					return "", nil, ErrModel
@@ -84,9 +111,11 @@ func (g *ChatGenerator) Generate(ctx context.Context, key, system string, input 
 				if out.Usage != nil && (out.Usage.PromptTokens < 0 || out.Usage.CompletionTokens < 0) {
 					return "", nil, ErrModel
 				}
+				observability.Outcome(ctx, "complete")
 				return out.Choices[0].Message.Content, out.Usage, nil
 			}
 		}
+		observability.End(call, callID, ErrModel)
 		cancel()
 		if ctx.Err() != nil {
 			return "", nil, ctx.Err()

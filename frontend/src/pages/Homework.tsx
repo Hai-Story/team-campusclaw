@@ -4,6 +4,7 @@ import { homework, readSubject, submissionKey, watchTask, terminal, effectiveCor
 import { SubjectPicker, Pagination, ResultPanel, Verdict } from '../components/HomeworkParts'
 import ReviewDialog from '../components/ReviewDialog'
 import Icon from '../components/Icon'
+import BankHomework from '../components/BankHomework'
 
 const empty={title:'',question:'',expected_answer:'',max_score:10}
 export default function Homework({me,onOpenPaper}:{me:Me;onOpenPaper:(id:number,subject:Subject,question?:number)=>void}){
@@ -17,6 +18,7 @@ export default function Homework({me,onOpenPaper}:{me:Me;onOpenPaper:(id:number,
  const [busy,setBusy]=useState(false),[formError,setFormError]=useState('')
  const [mine,setMine]=useState<Submission|null>(null),[mineLoading,setMineLoading]=useState(false),[mineError,setMineError]=useState(''),[mineRefresh,setMineRefresh]=useState(0)
  const [submissions,setSubmissions]=useState<Submission[]>([]),[subPage,setSubPage]=useState(1),[subRefresh,setSubRefresh]=useState(0),[subLoading,setSubLoading]=useState(false),[subError,setSubError]=useState('')
+ const [bankOpen,setBankOpen]=useState(false)
  const [reviewing,setReviewing]=useState<Submission|null>(null)
  const closeReview=useCallback(()=>setReviewing(null),[])
  const current=items.find(item=>item.id===selected)
@@ -76,13 +78,13 @@ export default function Homework({me,onOpenPaper}:{me:Me;onOpenPaper:(id:number,
  }
  return <main className="homework-page">
   <header className="page-heading"><div><div className="eyebrow">{me.class_name} · 作业练习</div><h1>{me.role==='teacher'?'作业发布与批改':'提交作业'}</h1><p className="hint">{me.role==='teacher'?'按学科发布本班作业、审阅学生作答与AI初判，并确认终评分数和对错。':'按学科完成练习，查看AI初判与教师终评，结合反馈反思作答。'}</p></div>
-   {me.role==='teacher'&&<div className="heading-actions"><button disabled={busy} onClick={()=>{setMode('publish');setDraftSubject(subject);setFormError('')}}><Icon name="plus" size={18}/>发布作业</button><button className={mode==='grade'?'primary':''} disabled={!current||busy} onClick={()=>{setMode('grade');setSubPage(1)}}><Icon name="clipboard" size={18}/>批改作业</button></div>}
-  </header><SubjectPicker value={subject} onChange={changeSubject} disabled={busy}/>
-  <div className="homework-grid"><section className="homework-panel" aria-label="本班作业"><h2>本班作业</h2>
+   {me.role==='teacher'&&<div className="heading-actions"><button disabled={busy||bankOpen} onClick={()=>{setMode('publish');setDraftSubject(subject);setFormError('')}}><Icon name="plus" size={18}/>发布作业</button><button className={mode==='grade'?'primary':''} disabled={!current||busy||bankOpen} onClick={()=>{setMode('grade');setSubPage(1)}}><Icon name="clipboard" size={18}/>批改作业</button></div>}
+  </header><SubjectPicker value={subject} onChange={changeSubject} disabled={busy||bankOpen}/>
+  {bankOpen&&me.role==='teacher'?<BankHomework subject={draftSubject||subject} onBusy={setBusy} onCancel={()=>setBankOpen(false)} onPublished={p=>onOpenPaper(p.id,p.subject)}/>:<div className="homework-grid"><section className="homework-panel" aria-label="本班作业"><h2>本班作业</h2>
    {loading?<p role="status">正在读取作业…</p>:listError?<div role="alert"><p>{listError}</p><button onClick={()=>setRefresh(x=>x+1)}>重试读取</button></div>:items.length===0?<p className="hint">{me.role==='teacher'?'这个学科还没有作业，点击发布作业开始。':'这个学科还没有作业，请等待教师发布。'}</p>:<div className="homework-list">{items.map(item=><button key={item.id} disabled={busy} aria-pressed={selected===item.id} className={selected===item.id?'selected':''} onClick={()=>{setSelected(item.id);setMode('detail');setFormError('');setSubPage(1);setMine(null);setMineRefresh(x=>x+1);setAnswer('')}}><strong>{item.title}</strong><span>{subjects.find(s=>s.id===item.subject)?.name} · 满分 {item.max_score}</span></button>)}</div>}
    <Pagination page={page} loading={loading||busy} hasMore={items.length>=20} onChange={value=>{setPage(value);setSelected(null);setMine(null);setMode('detail')}}/>
   </section><section className="homework-panel" aria-label={mode==='publish'?'发布作业':mode==='grade'?'批改作业':'作业内容'}>
-   {me.role==='teacher'&&mode==='publish'?<form className="homework-form" onSubmit={event=>void publish(event)}><div className="homework-section-heading"><h2>发布作业</h2><button type="button" disabled={busy} onClick={()=>setMode('detail')}>返回详情</button></div>
+   {me.role==='teacher'&&mode==='publish'?<form className="homework-form" onSubmit={event=>void publish(event)}><div className="homework-section-heading"><h2>发布作业</h2><button type="button" disabled={busy} onClick={()=>{setSubject(draftSubject||subject);setBankOpen(true)}}>从题库中添加</button><button type="button" disabled={busy} onClick={()=>setMode('detail')}>返回详情</button></div>
     <label>学科<select required value={draftSubject} onChange={e=>setDraftSubject(e.target.value as Subject)}><option value="">请选择学科</option>{subjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label><label>作业标题<input required maxLength={120} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></label><label>题目<textarea required rows={4} maxLength={4000} value={draft.question} onChange={e=>setDraft({...draft,question:e.target.value})}/></label><label>参考答案<textarea required rows={3} maxLength={2000} value={draft.expected_answer} onChange={e=>setDraft({...draft,expected_answer:e.target.value})}/></label><label>满分<input type="number" required min={1} max={100} step={1} value={draft.max_score} onChange={e=>setDraft({...draft,max_score:Number(e.target.value)})}/></label><button className="primary" disabled={busy}>{busy?'正在发布…':'发布到本班'}</button>
    </form>:current?<>
     <div className="homework-section-heading"><h2>{current.title}</h2>{me.role==='teacher'&&mode==='grade'&&<button onClick={()=>setMode('detail')}>返回详情</button>}</div><p className="homework-question">{current.question}</p><p className="hint">{subjects.find(s=>s.id===current.subject)?.name} · 满分 {current.max_score} 分</p>
@@ -93,7 +95,7 @@ export default function Homework({me,onOpenPaper}:{me:Me;onOpenPaper:(id:number,
      {mineLoading?<p role="status">正在读取我的作答…</p>:mineError?<div role="alert"><p>{mineError}</p><button onClick={()=>setMineRefresh(x=>x+1)}>重新读取</button></div>:<><form className="homework-form" onSubmit={event=>void submit(event)}><label>我的作答<textarea required rows={5} maxLength={10000} value={answer} onChange={e=>setAnswer(e.target.value)}/></label><div className="heading-actions"><button className="primary" disabled={busy||!answer.trim()}>{busy?'正在提交…':mine?'重新提交作答':'提交作业'}</button>{mine&&<button type="button" onClick={()=>setMineRefresh(x=>x+1)} disabled={busy}>刷新结果</button>}</div></form>{mine&&<><p className="hint">当前有效判断：<Verdict correct={effectiveCorrect(mine.task)}/></p><ResultPanel task={mine.task}/></>}</>}
     </>}
    </>:<p className="hint">选择本学科的作业后查看内容。</p>}{formError&&<p className="form-error" role="alert">{formError}</p>}
-  </section></div>
+  </section></div>}
   {reviewing&&<ReviewDialog key={reviewing.id} submission={reviewing} reference={current?.expected_answer} onClose={closeReview} onSaved={()=>{setReviewing(null);setSubRefresh(x=>x+1)}}/>}
  </main>
 }

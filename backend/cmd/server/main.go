@@ -116,6 +116,8 @@ func main() {
 	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}, Model: gradeSettings, Searcher: retrievalSvc.Searcher}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 	curriculumSvc := &curriculum.Service{Store: &curriculum.Store{DB: d}, Searcher: retrievalSvc.Searcher, Generator: &curriculum.ChatGenerator{BaseURL: cfg.ChatBaseURL, APIKey: cfg.ChatAPIKey, Model: cfg.ChatModel}, ModelName: cfg.ChatModel}
 	mcpSvc.Learning = curriculumSvc
+	mux.HandleFunc("GET /api/homework-notifications", dbGuard(authSvc.Middleware(curriculumSvc.ListHomeworkNotifications)))
+	mux.HandleFunc("PUT /api/homework-notifications/{id}/read", dbGuard(authSvc.Middleware(curriculumSvc.ReadHomeworkNotification)))
 	curriculum.Mount(mux, curriculumSvc, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 
 	mux.HandleFunc("POST /api/login", dbGuard(authSvc.Login))

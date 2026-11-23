@@ -1,0 +1,17 @@
+START TRANSACTION;
+UPDATE knowledge_points SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE lesson_plans SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE walkthroughs SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE knowledge_graph_scopes SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE knowledge_graph_edges SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE knowledge_graph_drafts SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE question_drafts SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE bank_questions SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE paper_drafts SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE review_cards SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE published_papers SET subject=CASE subject WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END WHERE subject IN ('science','morality');
+UPDATE lesson_plans SET input_json=JSON_SET(input_json,'$.subject',CASE JSON_UNQUOTE(JSON_EXTRACT(input_json,'$.subject')) WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END) WHERE JSON_UNQUOTE(JSON_EXTRACT(input_json,'$.subject')) IN ('science','morality');
+UPDATE knowledge_graph_drafts SET input_json=JSON_SET(input_json,'$.subject',CASE JSON_UNQUOTE(JSON_EXTRACT(input_json,'$.subject')) WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END) WHERE JSON_UNQUOTE(JSON_EXTRACT(input_json,'$.subject')) IN ('science','morality');
+UPDATE question_drafts SET input_json=JSON_SET(input_json,'$.subject',CASE JSON_UNQUOTE(JSON_EXTRACT(input_json,'$.subject')) WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END) WHERE JSON_UNQUOTE(JSON_EXTRACT(input_json,'$.subject')) IN ('science','morality');
+UPDATE review_completions SET card_json=JSON_SET(card_json,'$.subject',CASE JSON_UNQUOTE(JSON_EXTRACT(card_json,'$.subject')) WHEN 'science' THEN 'physics' WHEN 'morality' THEN 'politics' END) WHERE JSON_UNQUOTE(JSON_EXTRACT(card_json,'$.subject')) IN ('science','morality');
+COMMIT;

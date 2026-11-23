@@ -61,7 +61,7 @@ func (s *Service) MySubmission(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @api {"method":"GET","path":"/api/mistakes","summary":"分页读取本人指定学科的有效错题","auth":"student","status":200,"response":{"$ref":"#/components/schemas/SubmissionPage"},"errors":{"400":"学科或分页非法","401":"需要登录","403":"仅学生可用","503":"服务暂时不可用"},"parameters":[{"name":"page","in":"query","schema":{"type":"integer","minimum":1,"default":1}},{"name":"page_size","in":"query","schema":{"type":"integer","minimum":1,"default":20},"description":"超过100按100返回"},{"name":"subject","in":"query","schema":{"type":"string","enum":["chinese","math","english","science","morality"],"default":"math"}}]}
+// @api {"method":"GET","path":"/api/mistakes","summary":"分页读取本人指定学科的有效错题","auth":"student","status":200,"response":{"$ref":"#/components/schemas/SubmissionPage"},"errors":{"400":"学科或分页非法","401":"需要登录","403":"仅学生可用","503":"服务暂时不可用"},"parameters":[{"name":"page","in":"query","schema":{"type":"integer","minimum":1,"default":1}},{"name":"page_size","in":"query","schema":{"type":"integer","minimum":1,"default":20},"description":"超过100按100返回"},{"name":"subject","in":"query","schema":{"type":"string","enum":["chinese","math","english","physics","chemistry","biology","politics","history","geography"],"default":"math"}}]}
 func (s *Service) Mistakes(w http.ResponseWriter, r *http.Request) {
 	u, ok := actor(w, r, "student")
 	if !ok {

@@ -2,6 +2,7 @@ package tutor
 
 import (
 	"campusclaw/backend/internal/retrieval"
+	"campusclaw/backend/internal/subjects"
 	"context"
 	"regexp"
 	"strconv"
@@ -23,26 +24,13 @@ func applicationKey(seed string) string {
 	}
 	return ""
 }
-func materialSubject(title string) string {
-	title = strings.ToLower(title)
-	for _, v := range []struct {
-		subject string
-		words   []string
-	}{{"语文", []string{"语文", "阅读", "写作", "作文", "古诗", "春晓", "chinese"}}, {"数学", []string{"数学", "方程", "分数", "几何", "math"}}, {"英语", []string{"英语", "english"}}, {"科学", []string{"科学", "物理", "化学", "生物", "磁铁", "science"}}} {
-		for _, w := range v.words {
-			if strings.Contains(title, w) {
-				return v.subject
-			}
-		}
-	}
-	return ""
-}
+func materialSubject(title string) string { return subjects.Name(subjects.Classify(title)) }
 func questionSubject(q string) string {
 	q = strings.ToLower(q)
 	for _, v := range []struct {
 		subject string
 		words   []string
-	}{{"科学", []string{"科学", "物理", "化学", "生物", "磁铁", "磁力", "木块", "浮力", "水蒸气", "熔化", "沸腾", "电路", "光合作用"}}, {"数学", []string{"数学", "方程", "分数", "通分", "去括号", "几何", "面积", "周长", "三角", "分母", "分子", "乘法", "除法"}}, {"英语", []string{"英语", "english", "英文", "语法", "单词"}}, {"语文", []string{"语文", "阅读理解", "作者", "段落", "作文", "古诗", "词语", "修辞"}}} {
+	}{{"化学", []string{"化学", "酸碱", "化学式", "化学方程"}}, {"生物", []string{"生物", "光合作用", "细胞", "遗传"}}, {"政治", []string{"政治", "道德", "法治", "宪法"}}, {"历史", []string{"历史", "秦汉", "工业革命"}}, {"地理", []string{"地理", "经纬", "气候"}}, {"物理", []string{"科学", "物理", "磁铁", "磁力", "木块", "浮力", "水蒸气", "熔化", "沸腾", "电路"}}, {"数学", []string{"数学", "方程", "分数", "通分", "去括号", "几何", "面积", "周长", "三角", "分母", "分子", "乘法", "除法"}}, {"英语", []string{"英语", "english", "英文", "语法", "单词"}}, {"语文", []string{"语文", "阅读理解", "作者", "段落", "作文", "古诗", "词语", "修辞"}}} {
 		for _, w := range v.words {
 			if strings.Contains(q, w) {
 				return v.subject

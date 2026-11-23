@@ -1,6 +1,7 @@
 package grading
 
 import (
+	"campusclaw/backend/internal/homeworknotice"
 	"context"
 	"crypto/sha256"
 	"database/sql"
@@ -15,12 +16,23 @@ func contextBackground() context.Context { return context.Background() }
 type Store struct{ DB *sql.DB }
 
 func (s *Store) CreateAssignment(ctx context.Context, classID, actor int64, input AssignmentInput) (Assignment, error) {
-	res, err := s.DB.ExecContext(ctx, `INSERT INTO grade_assignments(class_id,created_by,subject,title,question,expected_answer,max_score) VALUES(?,?,?,?,?,?,?)`, classID, actor, input.Subject, input.Title, input.Question, input.ExpectedAnswer, input.MaxScore)
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return Assignment{}, err
+	}
+	defer tx.Rollback()
+	res, err := tx.ExecContext(ctx, `INSERT INTO grade_assignments(class_id,created_by,subject,title,question,expected_answer,max_score) VALUES(?,?,?,?,?,?,?)`, classID, actor, input.Subject, input.Title, input.Question, input.ExpectedAnswer, input.MaxScore)
 	if err != nil {
 		return Assignment{}, err
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
+		return Assignment{}, err
+	}
+	if err = homeworknotice.Enqueue(ctx, tx, classID, actor, id, 0); err != nil {
+		return Assignment{}, err
+	}
+	if err = tx.Commit(); err != nil {
 		return Assignment{}, err
 	}
 	return s.Assignment(ctx, classID, id)

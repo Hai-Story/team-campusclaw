@@ -2,6 +2,7 @@ package curriculum
 
 import (
 	"campusclaw/backend/internal/auth"
+	"campusclaw/backend/internal/homeworknotice"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -168,6 +169,9 @@ func (s *Store) PublishPaper(ctx context.Context, u auth.User, id int64, version
 				return PublishedPaper{}, e
 			}
 		}
+	}
+	if e = homeworknotice.Enqueue(ctx, tx, u.ClassID, u.ID, 0, pid); e != nil {
+		return PublishedPaper{}, e
 	}
 	if e = tx.Commit(); e != nil {
 		return PublishedPaper{}, e

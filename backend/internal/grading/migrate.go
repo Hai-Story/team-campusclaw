@@ -25,7 +25,7 @@ func Migrate(db *sql.DB) error {
 	if _, err = conn.ExecContext(contextBackground(), `CREATE TABLE IF NOT EXISTS grade_migrations(version VARCHAR(64) PRIMARY KEY,applied_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6))`); err != nil {
 		return err
 	}
-	for _, version := range []string{"001_async_grading", "002_teacher_review", "003_unified_subjects", "004_error_tags"} {
+	for _, version := range []string{"001_async_grading", "002_teacher_review", "003_unified_subjects", "004_error_tags", "005_nine_subjects"} {
 		var count int
 		if err = conn.QueryRowContext(contextBackground(), "SELECT COUNT(*) FROM grade_migrations WHERE version=?", version).Scan(&count); err != nil {
 			return err
