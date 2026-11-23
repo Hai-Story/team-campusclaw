@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Capture real SEC-05/06 baselines; findings keep the gate nonzero."""
 from pathlib import Path
-import datetime,json,shutil,subprocess,sys,tempfile
+import datetime,json,os,secrets,string,shutil,subprocess,sys,tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'output/security'
@@ -51,6 +51,8 @@ def scan_secrets():
             target=snapshot/'worktree'/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
         container=run(['docker','compose','ps','-q','web']).stdout.strip()
         if not container:raise RuntimeError('web未运行，前端产物尚未扫描')
+        project=run(['docker','inspect','-f','{{index .Config.Labels "com.docker.compose.project"}}',container]).stdout.strip()
+        if not project:raise RuntimeError('无法确认受测Compose项目')
         copied=run(['docker','cp',container+':/usr/share/nginx/html/.',str(snapshot/'frontend')])
         if copied.returncode:raise RuntimeError('无法读取正在运行的前端产物')
         logs=run(['docker','compose','logs','--no-color','--no-log-prefix'])
@@ -65,7 +67,7 @@ def scan_secrets():
             if result.returncode not in (0,1) or not report.exists():raise RuntimeError('密钥扫描失败: '+scope)
             findings=json.loads(report.read_text());scans[scope]={'hits':len(findings),'exit_code':result.returncode}
         scans['logs']['initialization_credential_markers']=root_markers
-        return {'historical_blobs':blob_count,'scans':scans,'hits':sum(x['hits'] for x in scans.values())+root_markers}
+        return {'compose_project':project,'historical_blobs':blob_count,'scans':scans,'hits':sum(x['hits'] for x in scans.values())+root_markers}
 
 def audit():
     frontend=run(['npm','--prefix','frontend','audit','--json'],timeout=180)
@@ -88,13 +90,13 @@ def audit():
 def write_report(data):
     reports=ROOT/'reports';reports.mkdir(exist_ok=True)
     lines=['# 安全资产基线','',f"检查日期：{data['date']}。提交：`{data['commit']}`。",'',
-           '扫描范围：全部可达Git历史的唯一文件内容与提交说明、当前工作树、运行中web容器的前端产物、隔离Compose全部服务日志。只报告脱敏结果。','',
-           '## SEC-05 密钥扫描','', '`make check-security` 调用固定版本gitleaks v8.24.3；历史包含已删除文件。','',
+           '扫描范围：全部可达Git历史的唯一文件内容与提交说明、当前工作树、运行中web容器的前端产物、所选Compose项目全部服务日志。只报告脱敏结果。','',
+           f"受测Compose项目：`{data['secrets']['compose_project']}`。",'', '## SEC-05 密钥扫描','', '`make check-security` 调用固定版本gitleaks v8.24.3；历史包含已删除文件。','',
            '| 范围 | 命中数 | 退出码 |','| --- | --- | --- |']
     for scope,value in data['secrets']['scans'].items():lines.append(f"| {scope} | {value['hits']} | {value['exit_code']} |")
     lines+=['',f"历史扫描覆盖{data['secrets']['historical_blobs']}个唯一文件内容；初始化口令日志标记{data['secrets']['scans']['logs']['initialization_credential_markers']}处。"]
     rotation=OUT/'root-rotation.json'
-    if rotation.exists():lines+=['','隔离数据库初始化日志曾命中1处管理口令；已轮换并验证旧值失效，重新创建容器后当前日志复扫。初始化改用仅数据库可读的秘密文件，明文未进入Git历史。']
+    if rotation.exists():lines+=['','隔离验证环境的数据库初始化日志曾命中1处管理口令；已轮换并验证旧值失效，重新创建容器后当前日志复扫。初始化改用仅数据库可读的秘密文件，明文未进入Git历史。']
     lines+=['','## SEC-06 依赖审计','', '`npm --prefix frontend audit --json` 的计数按受影响包统计：','', '```json',json.dumps(data['dependencies']['npm'],ensure_ascii=False,indent=2),'```','', '`govulncheck -json ./...` 分别扫描backend与mcp-server，固定扫描器v1.9.0；可达通告按唯一GO编号去重，JSON模式退出0不等同无漏洞。','']
     for name,item in data['dependencies']['go'].items():
         lines+=[f"- {name}：退出{item['exit_code']}，可达通告{item['reachable_count']}项；{item['severity']}。"]
@@ -104,7 +106,19 @@ def write_report(data):
             '完整脱敏扫描输出由命令生成在本机output/security/；本文件保留计数、退出码与通告编号，可运行相同入口复核。']
     (reports/'security-baseline.md').write_text('\n'.join(lines)+'\n')
 
+def prove_red():
+    ensure_tools()
+    with tempfile.TemporaryDirectory(prefix='campusclaw-red-proof-') as folder:
+        # Synthetic scanner fixture, never a real credential and never written into the repo.
+        token='gh'+'p_'+''.join(secrets.choice(string.ascii_letters+string.digits) for _ in range(36))
+        (Path(folder)/'probe.env').write_text('GITHUB_TOKEN='+token+'\n')
+        result=run(['docker','run','--rm','-v',TOOLS+':/tools:ro','-v',folder+':/scan:ro',GO,'/tools/gitleaks','dir','/scan','--no-banner','--redact','--log-level','error'],timeout=60)
+        if result.returncode!=1:raise RuntimeError('红门禁证明失败，预期扫描器退出1')
+        print(json.dumps({'gate':'RED','synthetic_fixture':True,'scanner_exit':result.returncode,'scope':'isolated temporary directory'}))
+        return 1
+
 def main():
+    if os.environ.get('SECURITY_PROVE_RED')=='1':return prove_red()
     OUT.mkdir(parents=True,exist_ok=True);ensure_tools();secrets=scan_secrets();dependencies=audit()
     red=bool(secrets['hits'] or dependencies['npm']['counts'].get('total',0) or any(value['reachable_count'] for value in dependencies['go'].values()))
     data={'date':datetime.datetime.now(datetime.timezone.utc).date().isoformat(),'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT).decode().strip(),'secrets':secrets,'dependencies':dependencies,'red':red}
