@@ -12,7 +12,16 @@ def run(c):
                 try:v=json.loads(line)
                 except ValueError:continue
                 if v.get('request_id')==rid and v.get('event')=='generation':entries.append(v)
-            if entries:assert len(entries)==1;return entries[0]
+            if entries:
+                assert len(entries)==1
+                for _ in range(100):
+                    code,stored,_,_=c.request('/api/audit-events?request_id='+rid,who='teacher')
+                    if code==200 and stored['items'] and stored['items'][0]['result']!='started':break
+                    time.sleep(.02)
+                assert code==200 and stored['items'], 'Missing durable audit'
+                row=stored['items'][0];assert row['model']['usage']==entries[0]['usage'] and row['skill_id']==entries[0]['skill_id']
+                assert row['result']==({'complete':'succeeded'}.get(entries[0]['status'],entries[0]['status'])),row
+                return entries[0]
             time.sleep(.05)
         raise AssertionError('Missing request-bound teaching audit')
     def turn(content):
