@@ -2,6 +2,7 @@ package grading
 
 import (
 	"bytes"
+	"campusclaw/backend/internal/observability"
 	"context"
 	"embed"
 	"encoding/json"
@@ -12,7 +13,7 @@ import (
 
 const VerdictVersion = "grading-verdict-v3"
 
-//go:embed prompts/verdict-v3.txt prompts/explanation-v1.txt
+//go:embed prompts/verdict-v3.txt prompts/explanation-v1.txt prompts/explanation-v3.txt
 var promptFiles embed.FS
 
 func Feedback(ctx context.Context, c Settings, work Work) (Result, Usage, *GradeError) {
@@ -28,20 +29,41 @@ func Feedback(ctx context.Context, c Settings, work Work) (Result, Usage, *Grade
 	d := json.NewDecoder(strings.NewReader(text))
 	d.DisallowUnknownFields()
 	if d.Decode(&feedback) != nil || feedback.Correct == nil {
-		return Result{}, Usage{}, &GradeError{"gateway_invalid_response", false}
+		return Result{}, usage, &GradeError{"gateway_invalid_response", false}
 	}
 	var extra any
 	if d.Decode(&extra) != io.EOF {
-		return Result{}, Usage{}, &GradeError{"gateway_invalid_response", false}
+		return Result{}, usage, &GradeError{"gateway_invalid_response", false}
 	}
 	feedback.Feedback = strings.TrimSpace(feedback.Feedback)
 	if n := len([]rune(feedback.Feedback)); n < 1 || n > 2000 {
-		return Result{}, Usage{}, &GradeError{"gateway_invalid_response", false}
+		return Result{}, usage, &GradeError{"gateway_invalid_response", false}
 	}
 	return Result{Correct: *feedback.Correct, Feedback: feedback.Feedback}, usage, nil
 }
 
-func completion(ctx context.Context, c Settings, correlation, prompt string, data map[string]any, maxTokens int) (string, Usage, *GradeError) {
+func completion(ctx context.Context, c Settings, correlation, prompt string, data map[string]any, maxTokens int) (text string, used Usage, failure *GradeError) {
+	skill := VerdictVersion
+	if strings.HasPrefix(correlation, "explain-") {
+		skill = ExplanationVersion
+	}
+	observability.Ensure(ctx, skill, c.Model)
+	ctx, callID := observability.Begin(ctx, c.Model, "grading")
+	defer func() {
+		var err error
+		if failure != nil {
+			err = failure
+		}
+		observability.End(ctx, callID, err)
+		status := "complete"
+		if failure != nil {
+			status = "failed"
+		}
+		if ctx.Err() != nil {
+			status = "cancelled"
+		}
+		observability.Outcome(ctx, status)
+	}()
 	input, _ := json.Marshal(data)
 	body, _ := json.Marshal(map[string]any{"model": c.Model, "temperature": 0, "max_tokens": maxTokens, "messages": []map[string]string{{"role": "system", "content": prompt}, {"role": "user", "content": string(input)}}})
 	req, err := http.NewRequestWithContext(ctx, "POST", strings.TrimRight(c.ChatURL, "/")+"/chat/completions", bytes.NewReader(body))
@@ -69,11 +91,22 @@ func completion(ctx context.Context, c Settings, correlation, prompt string, dat
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
-		Usage Usage `json:"usage"`
+		Usage *struct {
+			PromptTokens     *int `json:"prompt_tokens"`
+			CompletionTokens *int `json:"completion_tokens"`
+		} `json:"usage"`
 	}
 	decoder := json.NewDecoder(io.LimitReader(res.Body, 262145))
-	if decoder.Decode(&out) != nil || len(out.Choices) != 1 || out.Usage.PromptTokens < 0 || out.Usage.CompletionTokens < 0 {
+	if decoder.Decode(&out) != nil || len(out.Choices) != 1 || out.Usage != nil && (out.Usage.PromptTokens != nil && *out.Usage.PromptTokens < 0 || out.Usage.CompletionTokens != nil && *out.Usage.CompletionTokens < 0) {
 		return "", Usage{}, &GradeError{"gateway_invalid_response", false}
 	}
-	return out.Choices[0].Message.Content, out.Usage, nil
+	used = Usage{}
+	if out.Usage != nil && out.Usage.PromptTokens != nil && out.Usage.CompletionTokens != nil {
+		used.PromptTokens = *out.Usage.PromptTokens
+		used.CompletionTokens = *out.Usage.CompletionTokens
+		used.Reported = true
+		raw, _ := json.Marshal(map[string]int{"prompt_tokens": used.PromptTokens, "completion_tokens": used.CompletionTokens, "total_tokens": used.PromptTokens + used.CompletionTokens})
+		observability.Usage(ctx, raw)
+	}
+	return out.Choices[0].Message.Content, used, nil
 }

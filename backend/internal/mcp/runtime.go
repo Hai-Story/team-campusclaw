@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"campusclaw/backend/internal/auditlog"
 	"campusclaw/backend/internal/auth"
 	"context"
 	"database/sql"
@@ -81,6 +82,7 @@ func (m *Manager) Used(ctx context.Context, conversation int64) (int, error) {
 	return n, e
 }
 func (m *Manager) Record(ctx context.Context, u auth.User, conversation, requestID int64, c Candidate, round int, status, text string) (Call, error) {
+	auditlog.Tool(ctx, status)
 	result := Call{Ref: c.Ref, Status: status, Text: text, Round: round, ServerName: c.ServerName, UserID: u.ID, ConversationID: conversation, RequestID: requestID}
 	if c.ServerID == 0 {
 		return result, nil
@@ -106,7 +108,7 @@ func (m *Manager) Execute(ctx context.Context, u auth.User, conversation, reques
 	}
 	if e == nil {
 		text = "服务器未连接或引用已经失效"
-		if s.Connected && s.Name == c.ServerName && m.allowed[s.BaseURL] {
+		if s.Connected && s.Name == c.ServerName && (m.allowed[s.BaseURL] || s.BaseURL == LearningURL && m.Learning != nil) {
 			ts, e := m.tools(ctx, c.ServerID)
 			if e != nil {
 				return Call{}, e
@@ -123,6 +125,9 @@ func (m *Manager) Execute(ctx context.Context, u auth.User, conversation, reques
 				if e = ValidateArguments(c.Tool.InputSchema, args); e != nil {
 					text = e.Error()
 				} else {
+					if s.BaseURL == LearningURL {
+						return m.executeLearning(ctx, u, conversation, requestID, c, round, args)
+					}
 					token, err := decrypt(m.key, s.cipher)
 					status = "error"
 					if err != nil {

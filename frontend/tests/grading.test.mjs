@@ -29,7 +29,9 @@ for(const ai of [true,false])for(const teacher of [true,false]){
 }
 assert.equal(effectiveCorrect({result:{correct:false}}),false)
 assert.equal(effectiveCorrect({}),undefined)
-assert.equal(readSubject('physics'),'science')
+assert.equal(readSubject('physics'),'physics')
 // A11-S2: stale all/invalid filters restore a concrete subject.
 for(const raw of [null,'','all','other'])assert.equal(readSubject(raw),'math')
-for(const subject of ['chinese','math','english','science','morality'])assert.equal(readSubject(subject),subject)
+for(const subject of ['chinese','math','english','physics','chemistry','biology','politics','history','geography'])assert.equal(readSubject(subject),subject)
+
+assert.equal(readSubject('science'),'physics');assert.equal(readSubject('morality'),'politics')

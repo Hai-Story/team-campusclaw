@@ -1,5 +1,10 @@
 import type { CSSProperties } from 'react'
 const paths:Record<string,string>={
+ bell:'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9 M10 21h4',
+ clock:'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M12 6v6l4 2',
+ chart:'M3 3v18h18 M7 17v-5 M12 17V7 M17 17V4',
+ network:'M10 3h4v4h-4z M2 17h4v4H2z M18 17h4v4h-4z M12 7v5 M4 17v-5h16v5',
+ presentation:'M3 3h18v12H3z M12 15v6 M7 21l5-4 5 4 M7 8h10 M7 11h6',
  clipboard:'M9 4H5v17h14V4h-4 M9 2h6v5H9z M8 11h8 M8 15h5',
  alert:'M12 3 2 21h20L12 3 M12 9v5 M12 17v1',
  book:'M4 4h6a3 3 0 0 1 2 2v15a4 4 0 0 0-4-2H4z M20 4h-6a3 3 0 0 0-2 2v15a4 4 0 0 1 4-2h4z',

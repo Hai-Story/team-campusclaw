@@ -38,3 +38,23 @@ SEC-07缺`actor_id`、`skill_id`、`usage`，准备在教学技能执行日志�
 ## 2026-11-07 张海峰复测
 
 受测：`2ad1d3b9ea08169a134105be095b862bfc90f93a` + 06 文档工作树；`make precheck` 退出 2（脚本 1）。本轮 SEC-01 九个接口全部 401；SEC-02 本班/跨班关键字命中 1/0，跨班与不存在 404 业务体相同；SEC-03 三个配置写入 403/403/403 且数据库不变；SEC-04 为 403/400/404 且数据库不变。SEC-07 仍缺 actor_id/skill_id/usage，批改 worker 五字段齐全，不能替代教学技能日志。SEC-05 补跑扫描 0 命中，SEC-06 npm 高危 2/中危 1、Go 后端/MCP 可达通告 51/30，资产门禁退出 2；见本轮 security-baseline.md。SEC-08 未执行。独立 404/403/409 与页面复测见 review-01.md 追加记录，未构成人工批准。
+
+## 2026-11-15 修复复测
+
+基线c0d35f0的未提交工作树，18081隔离环境；以下结果替代先前依赖与SEC-07待处理结论，历史执行记录保留。
+
+| 检查 | 实际结果 |
+| --- | --- |
+| SEC-01至04 | 9接口401；跨班同形404与检索隔离；学生配置写入403；终评和分数字段拒绝，数据库不变 |
+| SEC-05 | 历史、工作树、前端产物与服务日志均0命中 |
+| SEC-06 | npm全部级别0；Go backend及mcp-server可达通告均0；Go 1.27.4，扫描器1.9.0 |
+| SEC-07 | 普通教学请求含actor_id/skill_id/model/status/duration_ms/usage并关联request_id；规划和流式用量累计准确；trace关闭、无技能、缺用量、失败及取消均有测试；原文和敏感标记不入审计 |
+
+python3 apitest/security_precheck.py与COMPOSE_PROJECT_NAME=campusclaw-team-test python3 scripts/check_security.py均退出0。21组完整接口回归通过；安全与评审规则原文未修改。真实模型额度限制另见功能记录，不把服务端检查作为模型质量或成员批准。
+
+
+## 2026-11-16 持久审计复测
+
+日期：2026-11-16。HEAD `c0d35f0004f60a3a6ec7cac6827dc15061e9ba1a` 加本地工作树；源码及测试指纹 `92ad079a3cad936a48a28b19ee96acec52ffa1cfaee5d4a2defa9cdc7a2a4197`。未创建提交或推送。
+
+`make precheck`退出0，原SEC-01至04及07复放通过；本轮持久审计、注入反例及真实SEC-08见[安全检查](security-fix-log.md)、[审计回查](audit-recheck.md)与[模型实验](sec08-experiment.md)。教师只查本班审计，学生403，跨班详情与不存在同形404；无业务数据变化。历史记录保留原受测范围，本段为本轮当前结果。

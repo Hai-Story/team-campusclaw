@@ -1,6 +1,8 @@
 package runtimehttp
 
 import (
+	"campusclaw/backend/internal/auditlog"
+	"campusclaw/backend/internal/observability"
 	"context"
 	"crypto/rand"
 	"database/sql"
@@ -43,7 +45,7 @@ func (r *response) Flush() {
 		f.Flush()
 	}
 }
-func Middleware(next http.Handler) http.Handler {
+func Middleware(next http.Handler, stores ...*auditlog.Store) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := make([]byte, 16)
 		if _, err := rand.Read(buf); err != nil {
@@ -54,7 +56,85 @@ func Middleware(next http.Handler) http.Handler {
 		w.Header().Set("X-Request-ID", id)
 		start := time.Now()
 		rec := &response{ResponseWriter: w}
-		next.ServeHTTP(rec, r.WithContext(context.WithValue(r.Context(), requestKey{}, id)))
+		audit := observability.New()
+		ctx := observability.With(context.WithValue(r.Context(), requestKey{}, id), audit)
+		var trace *auditlog.Trace
+		if len(stores) > 0 && strings.HasPrefix(r.URL.Path, "/api/") && r.URL.Path != "/api/openapi.json" {
+			call, cancel := context.WithTimeout(ctx, 3*time.Second)
+			var err error
+			route := r.Method + " unknown"
+			if mux, ok := next.(*http.ServeMux); ok {
+				_, pattern := mux.Handler(r)
+				if pattern != "" {
+					route = pattern
+				}
+			}
+			trace, err = stores[0].Start(call, "http:"+id, auditlog.Event{RequestID: id, Action: route, Object: "collection"})
+			cancel()
+			if err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(503)
+				json.NewEncoder(w).Encode(map[string]string{"error": "审计服务暂不可用，请稍后重试"})
+				return
+			}
+			ctx = auditlog.With(ctx, trace)
+		}
+		req := r.WithContext(ctx)
+		finished := false
+		defer func() {
+			if trace == nil {
+				return
+			}
+			status := rec.status
+			if status == 0 {
+				status = 200
+			}
+			if !finished {
+				status = 500
+			}
+			outcome := "succeeded"
+			if status >= 400 {
+				outcome = "failed"
+			}
+			if status == 401 || status == 403 || status == 404 {
+				outcome = "denied"
+			}
+			if r.Context().Err() != nil {
+				outcome = "cancelled"
+			}
+			fields := audit.Fields()
+			var skill any
+			if fields != nil {
+				skill = fields["skill_id"]
+				if status < 400 && (fields["status"] == "failed" || fields["status"] == "cancelled") {
+					outcome = fields["status"].(string)
+				}
+			}
+			route := req.Pattern
+			if route == "" {
+				route = r.Method + " unknown"
+			}
+			call, cancel := context.WithTimeout(context.WithoutCancel(ctx), 3*time.Second)
+			defer cancel()
+			if err := trace.Finish(call, route, auditlog.Object(req.PathValue), outcome, status, time.Since(start).Milliseconds(), fields, skill); err != nil {
+				fmt.Fprintln(os.Stdout, `{"module":"audit","event":"completion_failed","request_id":"`+id+`"}`)
+			}
+		}()
+		next.ServeHTTP(rec, req)
+		finished = true
+		if fields := audit.Fields(); fields != nil {
+			fields["ts"] = time.Now().UTC().Format(time.RFC3339Nano)
+			fields["level"] = "info"
+			fields["module"] = "tutor"
+			fields["event"] = "generation"
+			fields["request_id"] = id
+			fields["duration_ms"] = time.Since(start).Milliseconds()
+			if r.Context().Err() != nil {
+				fields["status"] = "cancelled"
+			}
+			raw, _ := json.Marshal(fields)
+			fmt.Fprintln(os.Stdout, string(raw))
+		}
 		status := rec.status
 		if status == 0 {
 			status = 200

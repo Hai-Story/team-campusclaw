@@ -43,4 +43,9 @@ func TestCitationFilter(t *testing.T) {
 	}
 }
 
-func TestNestedCitationFilter(t *testing.T){f:=CitationFilter{max:0};if v:=f.Feed("嵌套[[",false)+f.Feed("1]]正文",true);v!="嵌套[]正文"{t.Fatal(v)}}
+func TestNestedCitationFilter(t *testing.T) {
+	f := CitationFilter{max: 0}
+	if v := f.Feed("嵌套[[", false) + f.Feed("1]]正文", true); v != "嵌套[]正文" {
+		t.Fatal(v)
+	}
+}

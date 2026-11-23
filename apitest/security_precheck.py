@@ -75,7 +75,9 @@ def main():
         fields=sorted(set().union(*(set(item) for item in matches))) if matches else []
         missing_fields=sorted({'actor_id','skill_id','status','duration_ms','usage'}-set(fields))
         selected='解题引导' in stream
-        observed['SEC-07']={'status':'RED' if missing_fields or not selected else 'GREEN','skill_selected':selected,'request_log_count':len(matches),'request_log_fields':fields,'missing_fields':missing_fields,
+        audits=[item for item in matches if item.get('event')=='generation']
+        valid_usage=any(item.get('usage',{}).get('reported') and item['usage'].get('complete') and item['usage'].get('total_tokens',0)>0 and item.get('status')=='complete' and item.get('actor_id') and item.get('skill_id') for item in audits)
+        observed['SEC-07']={'status':'RED' if missing_fields or not selected or not valid_usage else 'GREEN','skill_selected':selected,'actual_usage_complete':valid_usage,'request_log_count':len(matches),'request_log_fields':fields,'missing_fields':missing_fields,
                             'scope':'已完成的教学技能SSE请求；可选的私有调试trace不替代结构化审计日志'}
         grading=[]
         for line in c.compose('logs','--no-color','--no-log-prefix','worker').splitlines():

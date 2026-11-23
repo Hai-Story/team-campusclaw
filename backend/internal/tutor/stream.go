@@ -3,6 +3,7 @@ package tutor
 import (
 	"campusclaw/backend/internal/auth"
 	"campusclaw/backend/internal/mcp"
+	"campusclaw/backend/internal/observability"
 	"campusclaw/backend/internal/retrieval"
 	"context"
 	"encoding/json"
@@ -28,6 +29,14 @@ func frame(w http.ResponseWriter, event string, payload any) error {
 // @api {"method":"POST","path":"/api/conversations/{id}/messages","summary":"在锁定智能体的会话中流式提问","auth":"student","status":200,"request":{"type":"object","properties":{"content":{"type":"string","minLength":2,"maxLength":500},"capture_trace":{"type":"boolean","default":false,"description":"记录本轮实际LLM请求体和原始响应，仅本人查看；无鉴权头"}},"required":["content"]},"response":{"type":"string"},"errors":{"400":"参数非法或本班名称重复","401":"未登录","403":"仅学生可使用智能体会话","404":"资源不存在（他班与不存在同形）","503":"服务暂时不可用","409":"该会话正在生成，或智能体已删除使会话只读"},"stream":true,"description":"真实SSE：首个meta含skill/citations；工具阶段每次meta.tool_calls增量追加真实状态，全部在首个delta前。模型原生多轮tools/call，默认上限3轮、每问6次、会话30次；失败/超限使用已有资料继续回答。delta.text为新增片段，落库后done.message_id；失败error、已生成消息含工具记录保存partial。不同会话并行，同会话409。客户端agent_id/history/class_id被忽略。 智能体删除后的历史仍可读取，但提问409且不新增消息。 capture_trace默认false；开启后消息has_trace=true，可经trace接口读取；响应128KiB/次、最多8次，超限明确标记。 首个meta含user_created_at/assistant_created_at（RFC3339 UTC），助手开始生成时间与保存记录一致，done/error在保存后含created_at；时间只作界面元数据，不传入LLM。","example":"event: meta\ndata: {\"skill\":null,\"citations\":[],\"user_created_at\":\"2026-10-23T00:05:00Z\",\"assistant_created_at\":\"2026-10-23T00:05:01Z\"}\n\nevent: meta\ndata: {\"tool_calls\":[{\"ref\":\"formula_hint@campus-tools\",\"status\":\"ok\",\"text\":\"检查乘法分配律\",\"round\":1}]}\n\nevent: delta\ndata: {\"text\":\"先看这一步\"}\n\nevent: done\ndata: {\"message_id\":1,\"created_at\":\"2026-10-23T00:05:01Z\"}\n\n"}
 func (s *Service) SendMessage(w http.ResponseWriter, r *http.Request) {
 	u, _ := auth.FromContext(r.Context())
+	observability.Bind(r.Context(), u.ID, nil, s.Chat.Model)
+	outcome := "failed"
+	defer func() {
+		if r.Context().Err() != nil {
+			outcome = "cancelled"
+		}
+		observability.Outcome(r.Context(), outcome)
+	}()
 	c, e := s.conversation(r.Context(), pathID(r), u)
 	if e != nil {
 		resourceError(w, e)
@@ -81,6 +90,9 @@ func (s *Service) SendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sk := Route(skills, in.Content)
+	if sk != nil {
+		observability.Bind(r.Context(), u.ID, sk.ID, s.Chat.Model)
+	}
 	tx, e := s.DB.BeginTx(r.Context(), nil)
 	if e != nil {
 		dbFail(w)
@@ -166,6 +178,9 @@ func (s *Service) SendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	if streamErr != nil {
 		status = "partial"
+		if answer.Len() > 0 {
+			outcome = "partial"
+		}
 	}
 	// Request cancellation cannot prevent recording text already sent to the student.
 	saveCtx, saveCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -191,11 +206,13 @@ func (s *Service) SendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	res, e := s.DB.ExecContext(saveCtx, `INSERT INTO messages(conversation_id,role,content,citations_json,skill_name,status,tool_calls_json,llm_trace_json,created_at) VALUES(?,'assistant',?,?,?,?,?,?,FROM_UNIXTIME(?))`, c.ID, answer.String(), string(cj), skillName, status, string(tj), traceJSON, assistantStarted)
 	if e != nil {
+		outcome = "failed"
 		_ = frame(w, "error", map[string]string{"error": "回答保存失败"})
 		return
 	}
 	id, e := res.LastInsertId()
 	if e != nil {
+		outcome = "failed"
 		_ = frame(w, "error", map[string]string{"error": "回答保存失败"})
 		return
 	}
@@ -203,5 +220,6 @@ func (s *Service) SendMessage(w http.ResponseWriter, r *http.Request) {
 		_ = frame(w, "error", map[string]any{"error": "回答中断，已保存生成的部分内容", "message_id": id, "created_at": timestamp(assistantStarted)})
 		return
 	}
+	outcome = "complete"
 	_ = frame(w, "done", map[string]any{"message_id": id, "created_at": timestamp(assistantStarted)})
 }

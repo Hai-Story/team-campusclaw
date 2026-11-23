@@ -1,0 +1,17 @@
+# Read-only entry for application rollback; preserve existing authenticated reads.
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+    if ($request_method !~ ^(GET|HEAD)$) { return 503; }
+    location / { try_files $uri $uri/ /index.html; }
+    location /api/ {
+        proxy_pass http://api:${API_PORT};
+        proxy_http_version 1.1;
+        proxy_read_timeout 130s;
+        proxy_buffering off;
+    }
+    location = /health { proxy_pass http://api:${API_PORT}/health; }
+    location = /live { proxy_pass http://api:${API_PORT}/live; }
+}

@@ -7,6 +7,8 @@
 package auth
 
 import (
+	"campusclaw/backend/internal/auditlog"
+	"campusclaw/backend/internal/observability"
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
@@ -148,6 +150,10 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "用户名或密码错误"})
 		return
 	}
+	if auditlog.Bind(r.Context(), id, classID) != nil {
+		writeJSON(w, 503, map[string]string{"error": "审计服务暂不可用，请稍后重试"})
+		return
+	}
 	s.limiter.reset(key)
 
 	// 防会话固定：换发新 Token；若请求带旧 Token（Authorization 头）则一并作废。
@@ -182,6 +188,22 @@ func (s *Service) Login(w http.ResponseWriter, r *http.Request) {
 // @api {"method":"POST","path":"/api/logout","summary":"撤销当前Token；无Token亦幂等成功","auth":"public","status":200,"request":null,"response":{"type":"object","properties":{"ok":{"type":"boolean"}}},"errors":{"503":"服务暂时不可用"},"description":"可携带Bearer撤销服务端会话；该接口不要求已有有效会话。"}
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 	if t := bearerToken(r); t != "" {
+		var actor, class int64
+		err := s.DB.QueryRowContext(r.Context(), `SELECT u.id,u.class_id FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.expires_at>NOW()`, s.tokenKey(t)).Scan(&actor, &class)
+		if err != nil && err != sql.ErrNoRows {
+			writeJSON(w, 503, map[string]string{"error": "服务暂时不可用"})
+			return
+		}
+		if err == nil {
+			if auditlog.Bind(r.Context(), actor, class) != nil {
+				writeJSON(w, 503, map[string]string{"error": "审计服务暂不可用，请稍后重试"})
+				return
+			}
+			if !sameOriginWrite(r) {
+				writeJSON(w, 403, map[string]string{"error": "请求来源无效，请从班级页面重试"})
+				return
+			}
+		}
 		_, _ = s.DB.Exec(`DELETE FROM sessions WHERE id = ?`, s.tokenKey(t))
 	}
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
@@ -219,6 +241,15 @@ func (s *Service) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "未登录"})
 			return
 		}
+		if auditlog.Bind(r.Context(), u.ID, u.ClassID) != nil {
+			writeJSON(w, 503, map[string]string{"error": "审计服务暂不可用，请稍后重试"})
+			return
+		}
+		if !sameOriginWrite(r) {
+			writeJSON(w, 403, map[string]string{"error": "请求来源无效，请从班级页面重试"})
+			return
+		}
+		observability.Identity(r.Context(), u.ID)
 		next(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, u)))
 	}
 }

@@ -25,7 +25,7 @@ func Migrate(db *sql.DB) error {
 	if _, err = conn.ExecContext(contextBackground(), `CREATE TABLE IF NOT EXISTS grade_migrations(version VARCHAR(64) PRIMARY KEY,applied_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6))`); err != nil {
 		return err
 	}
-	for _, version := range []string{"001_async_grading", "002_teacher_review", "003_unified_subjects"} {
+	for _, version := range []string{"001_async_grading", "002_teacher_review", "003_unified_subjects", "004_error_tags", "005_nine_subjects"} {
 		var count int
 		if err = conn.QueryRowContext(contextBackground(), "SELECT COUNT(*) FROM grade_migrations WHERE version=?", version).Scan(&count); err != nil {
 			return err
@@ -44,6 +44,18 @@ func Migrate(db *sql.DB) error {
 				}
 				if count == 0 {
 					if _, err = conn.ExecContext(contextBackground(), "ALTER TABLE "+column.table+" ADD COLUMN "+column.name+" "+column.definition); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		if version == "004_error_tags" {
+			for _, table := range []string{"grade_reviews", "grade_review_history"} {
+				if err = conn.QueryRowContext(contextBackground(), `SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME='error_tags'`, table).Scan(&count); err != nil {
+					return err
+				}
+				if count == 0 {
+					if _, err = conn.ExecContext(contextBackground(), "ALTER TABLE "+table+" ADD COLUMN error_tags JSON NULL"); err != nil {
 						return err
 					}
 				}

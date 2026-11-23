@@ -14,6 +14,7 @@ import (
 
 type Service struct {
 	Store         *Store
+	Searcher      ExplanationSearcher
 	Model         Settings
 	explanationMu sync.Mutex
 	explanations  map[int64]bool
@@ -34,6 +35,10 @@ func failure(w http.ResponseWriter, err error) {
 	if errors.Is(err, ErrConflict) {
 		status = 409
 		message = "该提交标识已用于其他内容，请使用新的提交标识"
+	}
+	if errors.Is(err, ErrPaperManaged) {
+		status = 409
+		message = "请打开对应多题作业后整卷提交"
 	}
 	write(w, status, map[string]string{"error": message})
 }
@@ -121,7 +126,7 @@ func Mount(mux *http.ServeMux, s *Service, protect func(http.HandlerFunc) http.H
 	mux.HandleFunc("GET /api/submissions/{id}", protect(s.GetSubmission))
 }
 
-// @api {"method":"POST","path":"/api/assignments","summary":"发布本班客观题作业","auth":"teacher","status":201,"request":{"type":"object","required":["title","question","expected_answer","max_score","subject"],"properties":{"title":{"type":"string","maxLength":120,"minLength":1},"question":{"type":"string","maxLength":4000,"minLength":1},"expected_answer":{"type":"string","maxLength":2000,"minLength":1},"max_score":{"type":"integer","minimum":1,"maximum":100},"subject":{"type":"string","enum":["chinese","math","english","science","morality"]}},"additionalProperties":false},"response":{"$ref":"#/components/schemas/GradingAssignment"},"errors":{"400":"参数非法","401":"需要登录","403":"仅教师可发布","503":"服务暂时不可用","413":"请求过大","415":"请使用application/json"}}
+// @api {"method":"POST","path":"/api/assignments","summary":"发布本班客观题作业","auth":"teacher","status":201,"request":{"type":"object","required":["title","question","expected_answer","max_score","subject"],"properties":{"title":{"type":"string","maxLength":120,"minLength":1},"question":{"type":"string","maxLength":4000,"minLength":1},"expected_answer":{"type":"string","maxLength":2000,"minLength":1},"max_score":{"type":"integer","minimum":1,"maximum":100},"subject":{"type":"string","enum":["chinese","math","english","physics","chemistry","biology","politics","history","geography"]}},"additionalProperties":false},"response":{"$ref":"#/components/schemas/GradingAssignment"},"errors":{"400":"参数非法","401":"需要登录","403":"仅教师可发布","503":"服务暂时不可用","413":"请求过大","415":"请使用application/json"}}
 func (s *Service) CreateAssignment(w http.ResponseWriter, r *http.Request) {
 	u, ok := actor(w, r, "teacher")
 	if !ok {
@@ -143,7 +148,7 @@ func (s *Service) CreateAssignment(w http.ResponseWriter, r *http.Request) {
 	write(w, 201, a)
 }
 
-// @api {"method":"GET","path":"/api/assignments","summary":"分页读取本班作业","auth":"login","status":200,"response":{"type":"object","required":["items","page","page_size"],"properties":{"items":{"type":"array","items":{"$ref":"#/components/schemas/GradingAssignment"}},"page":{"type":"integer"},"page_size":{"type":"integer","minimum":1,"maximum":100}}},"errors":{"400":"分页参数非法","401":"需要登录","503":"服务暂时不可用"},"parameters":[{"name":"page","in":"query","schema":{"type":"integer","minimum":1,"default":1}},{"name":"page_size","in":"query","schema":{"type":"integer","minimum":1,"default":20},"description":"超过100按100返回"},{"name":"subject","in":"query","schema":{"type":"string","enum":["chinese","math","english","science","morality"],"default":"math"}}]}
+// @api {"method":"GET","path":"/api/assignments","summary":"分页读取本班作业","auth":"login","status":200,"response":{"type":"object","required":["items","page","page_size"],"properties":{"items":{"type":"array","items":{"$ref":"#/components/schemas/GradingAssignment"}},"page":{"type":"integer"},"page_size":{"type":"integer","minimum":1,"maximum":100}}},"errors":{"400":"分页参数非法","401":"需要登录","503":"服务暂时不可用"},"parameters":[{"name":"page","in":"query","schema":{"type":"integer","minimum":1,"default":1}},{"name":"page_size","in":"query","schema":{"type":"integer","minimum":1,"default":20},"description":"超过100按100返回"},{"name":"subject","in":"query","schema":{"type":"string","enum":["chinese","math","english","physics","chemistry","biology","politics","history","geography"],"default":"math"}}]}
 func (s *Service) ListAssignments(w http.ResponseWriter, r *http.Request) {
 	u, ok := actor(w, r, "")
 	if !ok {

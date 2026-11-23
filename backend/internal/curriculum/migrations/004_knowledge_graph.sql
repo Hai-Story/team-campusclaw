@@ -1,0 +1,50 @@
+CREATE TABLE IF NOT EXISTS knowledge_graph_scopes (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ class_id BIGINT NOT NULL,
+ subject VARCHAR(16) NOT NULL,
+ created_by BIGINT NOT NULL,
+ created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ UNIQUE KEY uq_graph_scope(class_id,subject),
+ FOREIGN KEY(class_id) REFERENCES classes(id),
+ FOREIGN KEY(created_by) REFERENCES users(id)
+);
+CREATE TABLE IF NOT EXISTS knowledge_graph_edges (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ class_id BIGINT NOT NULL,
+ subject VARCHAR(16) NOT NULL,
+ from_id BIGINT NOT NULL,
+ to_id BIGINT NOT NULL,
+ kind VARCHAR(16) NOT NULL,
+ version INT NOT NULL DEFAULT 1,
+ created_by BIGINT NOT NULL,
+ created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ UNIQUE KEY uq_graph_edge(class_id,subject,kind,from_id,to_id),
+ FOREIGN KEY(from_id) REFERENCES knowledge_points(id) ON DELETE CASCADE,
+ FOREIGN KEY(to_id) REFERENCES knowledge_points(id) ON DELETE CASCADE,
+ FOREIGN KEY(class_id) REFERENCES classes(id),
+ FOREIGN KEY(created_by) REFERENCES users(id)
+);
+CREATE TABLE IF NOT EXISTS knowledge_graph_drafts (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ class_id BIGINT NOT NULL,
+ created_by BIGINT NOT NULL,
+ subject VARCHAR(16) NOT NULL,
+ input_json JSON NOT NULL,
+ existing_nodes_json JSON NOT NULL,
+ nodes_json JSON NOT NULL,
+ edges_json JSON NOT NULL,
+ citations_json JSON NOT NULL,
+ point_ids_json JSON NOT NULL,
+ client_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ input_hash CHAR(64) NOT NULL,
+ status VARCHAR(16) NOT NULL DEFAULT 'pending',
+ version INT NOT NULL DEFAULT 1,
+ created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+ UNIQUE KEY uq_graph_draft(class_id,created_by,client_key),
+ INDEX idx_graph_draft_owner(class_id,created_by,subject,id),
+ FOREIGN KEY(class_id) REFERENCES classes(id),
+ FOREIGN KEY(created_by) REFERENCES users(id)
+);

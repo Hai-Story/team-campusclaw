@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import json
 
 def run(c):
     # A7/A8/A10: real HTTP, class-scoped SQL state and append-only review versions.
@@ -52,31 +53,59 @@ def run(c):
     assert c.sql(f'SELECT version FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid};')==[['4'],['4']]
 
     # A real foreign-class row in the isolated fixture; no production data involved.
-    foreign=int(c.sql("INSERT INTO grade_assignments(class_id,created_by,subject,title,question,expected_answer,max_score) SELECT b.class_id,a.id,'science','foreign-fixture','q','2',10 FROM users b JOIN users a ON a.username='teacher_a' WHERE b.username='student_b1'; SELECT LAST_INSERT_ID();")[0][0]);c.assignments.append(foreign)
+    foreign=int(c.sql("INSERT INTO grade_assignments(class_id,created_by,subject,title,question,expected_answer,max_score) SELECT b.class_id,a.id,'physics','foreign-fixture','q','2',10 FROM users b JOIN users a ON a.username='teacher_a' WHERE b.username='student_b1'; SELECT LAST_INSERT_ID();")[0][0]);c.assignments.append(foreign)
     c.control(delay_ms=10,statuses=[],correct=False)
     code,foreign_receipt,_,_=c.request(f'/api/assignments/{foreign}/submissions',{'answer':'2'},who='other',headers={'Idempotency-Key':c.run_id+'-foreign'})
     assert code==202
     assert judge(foreign_receipt['submission_id'],False,0)[0]==404
     assert c.request(f'/api/assignments/{foreign}/submissions',who='teacher')[0]==404
     assert c.request(f'/api/assignments/{foreign}/my-submission')[0]==404
-    assert foreign not in mistakes('science')
+    assert foreign not in mistakes('physics')
 
     c.control(delay_ms=500,statuses=[],correct=False)
-    late=c.assignment(subject='science');r=c.submit(late)[1]
+    late=c.assignment(subject='physics');r=c.submit(late)[1]
     assert judge(r['submission_id'],True,7)[0]==200
     t=c.wait(r['task_id']);assert t['result']['correct'] is False and t['final_review']['correct'] is True and t['final_review']['score']==7
     c.compose('exec','-T','worker','/app/grade-worker','-publish',r['task_id'])
     for _ in range(10):assert c.task(r['task_id'])['final_review']['version']==1
-    assert late not in mistakes('science')
+    assert late not in mistakes('physics')
     c.control(delay_ms=10,statuses=[],correct=False)
-    science=c.assignment(subject='science');r=c.submit(science)[1];c.wait(r['task_id'])
-    assert science in mistakes('science') and science not in mistakes('math')
+    science=c.assignment(subject='physics');r=c.submit(science)[1];c.wait(r['task_id'])
+    assert science in mistakes('physics') and science not in mistakes('math')
     c.control(delay_ms=10,statuses=[],correct=True)
     r=c.submit(science,answer='3')[1];c.wait(r['task_id'])
-    assert science not in mistakes('science'),'latest correct attempt must replace the old mistake'
+    assert science not in mistakes('physics'),'latest correct attempt must replace the old mistake'
     c.control(delay_ms=10,statuses=[401])
     failed=c.assignment();r=c.submit(failed)[1];assert c.wait(r['task_id'])['status']=='failed'
     assert judge(r['submission_id'],False,0)[0]==200
     assert failed in mistakes()
+    # D1: head/history keep confirmed tags, old clients preserve wrong tags, correct reviews clear them.
+    sid=r['submission_id'];path=f'/api/submissions/{sid}/review'
+    payload={'score':0,'correct':False,'expected_version':1,'error_tags':['method','concept']}
+    tagged=c.request(path,payload,who='teacher',method='PUT');assert tagged[0]==200 and tagged[1]['error_tags']==['concept','method']
+    assert c.task(r['task_id'])['final_review']['error_tags']==['concept','method']
+    assert judge(sid,False,0,2)[1]['error_tags']==['concept','method']
+    before=c.sql(f'SELECT version,error_tags FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid}')
+    for tags in [['fake'],['concept','concept'],[''],[1]]:
+        assert c.request(path,{**payload,'expected_version':3,'error_tags':tags},who='teacher',method='PUT')[0]==400
+    assert c.request(path,{**payload,'expected_version':3,'correct':True},who='teacher',method='PUT')[0]==400
+    assert before==c.sql(f'SELECT version,error_tags FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid}')
+    c.sql('ALTER TABLE grade_review_history ADD COLUMN apitest_tag_required INT NOT NULL')
+    try:assert c.request(path,{**payload,'expected_version':3,'error_tags':['reading']},who='teacher',method='PUT')[0]==503
+    finally:c.sql('ALTER TABLE grade_review_history DROP COLUMN apitest_tag_required')
+    assert before==c.sql(f'SELECT version,error_tags FROM grade_reviews WHERE submission_id={sid}; SELECT COUNT(*) FROM grade_review_history WHERE submission_id={sid}')
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        tag_codes=list(pool.map(lambda tag:c.request(path,{**payload,'expected_version':3,'error_tags':[tag]},who='teacher',method='PUT')[0],['concept','reading']))
+    assert sorted(tag_codes)==[200,409]
+    assert judge(sid,True,10,4)[1]['error_tags']==[]
+    rows=c.sql(f'SELECT error_tags FROM grade_review_history WHERE submission_id={sid} ORDER BY version')
+    assert len(rows)==5 and json.loads(rows[1][0])==['concept','method'] and json.loads(rows[-1][0])==[]
+    c.compose('restart','api');c.compose('restart','api')
+    for _ in range(60):
+        try:
+            if c.request('/live',who=None)[0]==200:break
+        except Exception:pass
+        import time;time.sleep(.1)
+    assert c.task(r['task_id'])['final_review']['version']==5
     c.control(delay_ms=20,statuses=[])
-    return {'judgment_combinations':4,'concurrent_reviews':sorted(codes),'history_version':4,'history_rollback':'PASS','late_AI_override':'blocked','subject_isolation':'PASS','latest_attempt':'PASS','authorization':'403/404','AI_numeric_score':None}
+    return {'judgment_combinations':4,'concurrent_reviews':sorted(codes),'history_version':4,'history_rollback':'PASS','late_AI_override':'blocked','subject_isolation':'PASS','latest_attempt':'PASS','authorization':'403/404','AI_numeric_score':None,'confirmed_tags':'versioned/preserved/cleared; rollback; concurrent200/409; restart2'}

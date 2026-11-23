@@ -606,9 +606,19 @@
           "chinese",
           "math",
           "english",
-          "science",
-          "morality"
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
         ]
+      },
+      "paper_id": {
+        "type": "integer"
+      },
+      "question_number": {
+        "type": "integer"
       }
     }
   },
@@ -753,6 +763,20 @@
       "reviewed_at": {
         "type": "string",
         "format": "date-time"
+      },
+      "error_tags": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "concept",
+            "calculation",
+            "reading",
+            "method",
+            "careless",
+            "other"
+          ]
+        }
       }
     }
   },
@@ -800,8 +824,12 @@
           "chinese",
           "math",
           "english",
-          "science",
-          "morality"
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
         ]
       },
       "title": {
@@ -849,5 +877,2171 @@
         "maximum": 100
       }
     }
+  },
+  "KnowledgePointInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "name"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "material_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignment_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "KnowledgePointUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "name",
+      "expected_version"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "material_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignment_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "KnowledgePoint": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "name",
+      "chapter",
+      "description",
+      "version",
+      "material_ids",
+      "assignment_ids",
+      "favorite",
+      "created_at",
+      "updated_at"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "chapter": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "material_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignment_ids": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "id": {
+        "type": "integer"
+      },
+      "version": {
+        "type": "integer"
+      },
+      "favorite": {
+        "type": "boolean"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "LessonPlanInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "chapter",
+      "objectives",
+      "periods",
+      "minutes_per_period",
+      "material_ids",
+      "client_key"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "chapter": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "objectives": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "periods": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 8
+      },
+      "minutes_per_period": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 90
+      },
+      "material_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "LessonPlanSummary": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "version",
+      "created_at",
+      "updated_at"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "version": {
+        "type": "integer"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "LessonPlan": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "version",
+      "created_at",
+      "updated_at",
+      "input",
+      "body",
+      "citations"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "version": {
+        "type": "integer"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "input": {
+        "$ref": "#/components/schemas/LessonPlanInput"
+      },
+      "body": {
+        "type": "string",
+        "maxLength": 20000
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/Citation"
+            },
+            {
+              "type": "object",
+              "required": [
+                "chunk_id",
+                "available"
+              ],
+              "properties": {
+                "chunk_id": {
+                  "type": "integer"
+                },
+                "available": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "LessonPlanUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "title",
+      "body",
+      "expected_version"
+    ],
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "body": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20000
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "WalkCreate": {
+    "type": "object",
+    "required": [
+      "assignment_id",
+      "client_key"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "assignment_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "WalkInput": {
+    "type": "object",
+    "required": [
+      "content",
+      "action",
+      "expected_version",
+      "client_key"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "content": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      },
+      "action": {
+        "type": "string",
+        "enum": [
+          "discuss",
+          "advance",
+          "finish"
+        ]
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "Walkthrough": {
+    "type": "object",
+    "required": [
+      "id",
+      "assignment_id",
+      "subject",
+      "title",
+      "question",
+      "stage",
+      "version",
+      "turns",
+      "active"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "assignment_id": {
+        "type": "integer"
+      },
+      "subject": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "question": {
+        "type": "string"
+      },
+      "stage": {
+        "type": "string",
+        "enum": [
+          "read",
+          "method",
+          "derive",
+          "check",
+          "completed"
+        ]
+      },
+      "version": {
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "improvements": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "turns": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "ExpectedVersion": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "expected_version"
+    ],
+    "properties": {
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "SourceInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "material_ids",
+      "client_key"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "material_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    }
+  },
+  "GraphEdgeInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "from_id",
+      "to_id",
+      "kind"
+    ],
+    "properties": {
+      "from_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "to_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "prerequisite",
+          "contains",
+          "related"
+        ]
+      }
+    }
+  },
+  "GraphEdge": {
+    "type": "object",
+    "required": [
+      "id",
+      "from_id",
+      "to_id",
+      "kind",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "from_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "to_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "prerequisite",
+          "contains",
+          "related"
+        ]
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "KnowledgeGraph": {
+    "type": "object",
+    "required": [
+      "subject",
+      "nodes",
+      "edges"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string"
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "name",
+            "chapter",
+            "reviewed",
+            "incorrect",
+            "weak"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "name": {
+              "type": "string"
+            },
+            "chapter": {
+              "type": "string"
+            },
+            "reviewed": {
+              "type": "integer"
+            },
+            "incorrect": {
+              "type": "integer"
+            },
+            "weak": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/GraphEdge"
+        }
+      }
+    }
+  },
+  "GraphDraftUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "nodes",
+      "edges",
+      "citation_indices",
+      "expected_version"
+    ],
+    "properties": {
+      "nodes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "chapter",
+            "description"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "chapter": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "to",
+            "kind"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "prerequisite",
+                "contains",
+                "related"
+              ]
+            }
+          }
+        }
+      },
+      "citation_indices": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "GraphDraft": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "nodes",
+      "edges",
+      "citation_indices",
+      "citations",
+      "status",
+      "version",
+      "point_ids"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string"
+      },
+      "nodes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "chapter",
+            "description"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "chapter": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "to",
+            "kind"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "prerequisite",
+                "contains",
+                "related"
+              ]
+            }
+          }
+        }
+      },
+      "citation_indices": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "existing_nodes": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      },
+      "input": {
+        "$ref": "#/components/schemas/SourceInput"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved"
+        ]
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "QuestionItem": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "type",
+      "stem",
+      "options",
+      "answer",
+      "explanation",
+      "knowledge_point_ids",
+      "difficulty",
+      "citation_indices"
+    ],
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "single_choice",
+          "multiple_choice",
+          "true_false",
+          "short_answer"
+        ]
+      },
+      "stem": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "maxItems": 8
+      },
+      "answer": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "minItems": 1,
+        "maxItems": 8
+      },
+      "explanation": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true
+      },
+      "difficulty": {
+        "type": "string",
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ]
+      },
+      "citation_indices": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minItems": 1,
+        "maxItems": 6,
+        "uniqueItems": true
+      }
+    },
+    "description": "单选答案1个、多选至少2个A-H有效字母；判断无选项且答案true/false；简答无选项且单个参考答案。"
+  },
+  "BankInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "material_ids",
+      "client_key",
+      "knowledge_point_ids",
+      "question_types",
+      "difficulty",
+      "question_count"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "material_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minItems": 1,
+        "maxItems": 10,
+        "uniqueItems": true
+      },
+      "question_types": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "single_choice",
+            "multiple_choice",
+            "true_false",
+            "short_answer"
+          ]
+        },
+        "minItems": 1,
+        "maxItems": 4,
+        "uniqueItems": true
+      },
+      "difficulty": {
+        "type": "string",
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ]
+      },
+      "question_count": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10
+      }
+    }
+  },
+  "QuestionDraft": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "input",
+      "questions",
+      "citations",
+      "bank_ids",
+      "status",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "input": {
+        "$ref": "#/components/schemas/BankInput"
+      },
+      "questions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/QuestionItem"
+        },
+        "minItems": 1,
+        "maxItems": 10
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "bank_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved"
+        ]
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "BankQuestion": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "question",
+      "citations",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "question": {
+        "$ref": "#/components/schemas/QuestionItem"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "PaperInput": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "subject",
+      "title",
+      "items",
+      "client_key"
+    ],
+    "properties": {
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "question_id",
+            "question_version",
+            "score"
+          ],
+          "properties": {
+            "question_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "question_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "minItems": 1,
+        "maxItems": 50
+      },
+      "client_key": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9-]{1,64}$"
+      }
+    },
+    "description": "总分最多1000；同一题目不得重复；新选题须当前本人题库版本。"
+  },
+  "PaperUpdate": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "title",
+      "items",
+      "expected_version"
+    ],
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "question_id",
+            "question_version",
+            "score"
+          ],
+          "properties": {
+            "question_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "question_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "minItems": 1,
+        "maxItems": 50
+      },
+      "expected_version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "PaperSummary": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "total_score",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "total_score": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "PaperDraft": {
+    "type": "object",
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "items",
+      "total_score",
+      "version"
+    ],
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "total_score": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1000
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "question_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "question_version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "question": {
+              "$ref": "#/components/schemas/QuestionItem"
+            },
+            "citations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "LearningStats": {
+    "type": "object",
+    "required": [
+      "samples",
+      "correct",
+      "score",
+      "max_score",
+      "score_percent",
+      "correct_percent"
+    ],
+    "properties": {
+      "samples": {
+        "type": "integer"
+      },
+      "correct": {
+        "type": "integer"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "max_score": {
+        "type": "integer"
+      },
+      "score_percent": {
+        "type": "number",
+        "nullable": true
+      },
+      "correct_percent": {
+        "type": "number",
+        "nullable": true
+      }
+    }
+  },
+  "DiagnosisSample": {
+    "type": "object",
+    "required": [
+      "submission_id",
+      "assignment_id",
+      "student_id",
+      "score",
+      "max_score",
+      "correct",
+      "review_version",
+      "error_tags",
+      "knowledge_point_ids"
+    ],
+    "properties": {
+      "submission_id": {
+        "type": "integer"
+      },
+      "assignment_id": {
+        "type": "integer"
+      },
+      "student_id": {
+        "type": "integer"
+      },
+      "student_name": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "max_score": {
+        "type": "integer"
+      },
+      "correct": {
+        "type": "boolean"
+      },
+      "review_version": {
+        "type": "integer"
+      },
+      "submitted_at": {
+        "type": "string"
+      },
+      "reviewed_at": {
+        "type": "string"
+      },
+      "question": {
+        "type": "string"
+      },
+      "answer": {
+        "type": "string"
+      },
+      "feedback": {
+        "type": "string"
+      },
+      "error_tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "DiagnosisReport": {
+    "type": "object",
+    "required": [
+      "samples",
+      "correct",
+      "score",
+      "max_score",
+      "score_percent",
+      "correct_percent",
+      "subject",
+      "from",
+      "to",
+      "timezone",
+      "fingerprint",
+      "student_count",
+      "page",
+      "page_size",
+      "total_evidence",
+      "students",
+      "points",
+      "trend",
+      "error_counts",
+      "evidence"
+    ],
+    "properties": {
+      "samples": {
+        "type": "integer"
+      },
+      "correct": {
+        "type": "integer"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "max_score": {
+        "type": "integer"
+      },
+      "score_percent": {
+        "type": "number",
+        "nullable": true
+      },
+      "correct_percent": {
+        "type": "number",
+        "nullable": true
+      },
+      "subject": {
+        "type": "string"
+      },
+      "from": {
+        "type": "string"
+      },
+      "to": {
+        "type": "string"
+      },
+      "timezone": {
+        "type": "string"
+      },
+      "fingerprint": {
+        "type": "string"
+      },
+      "student_count": {
+        "type": "integer"
+      },
+      "page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      },
+      "total_evidence": {
+        "type": "integer"
+      },
+      "students": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "samples": {
+              "type": "integer"
+            },
+            "correct": {
+              "type": "integer"
+            },
+            "score": {
+              "type": "integer"
+            },
+            "max_score": {
+              "type": "integer"
+            },
+            "score_percent": {
+              "type": "number",
+              "nullable": true
+            },
+            "correct_percent": {
+              "type": "number",
+              "nullable": true
+            }
+          }
+        }
+      },
+      "trend": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "samples": {
+              "type": "integer"
+            },
+            "correct": {
+              "type": "integer"
+            },
+            "score": {
+              "type": "integer"
+            },
+            "max_score": {
+              "type": "integer"
+            },
+            "score_percent": {
+              "type": "number",
+              "nullable": true
+            },
+            "correct_percent": {
+              "type": "number",
+              "nullable": true
+            }
+          }
+        }
+      },
+      "error_counts": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/DiagnosisSample"
+        }
+      }
+    }
+  },
+  "ReviewSettings": {
+    "type": "object",
+    "properties": {
+      "intervals": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "minItems": 5,
+        "maxItems": 5
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "intervals",
+      "version"
+    ]
+  },
+  "ReviewCard": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "source_kind": {
+        "type": "string",
+        "enum": [
+          "mistake",
+          "favorite"
+        ]
+      },
+      "source_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string"
+      },
+      "body": {
+        "type": "string"
+      },
+      "level": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 5
+      },
+      "due_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "version": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "assignment_id": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "id",
+      "source_kind",
+      "source_id",
+      "subject",
+      "title",
+      "body",
+      "level",
+      "due_at",
+      "version",
+      "active"
+    ]
+  },
+  "ReviewCompletion": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "card_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "feedback": {
+        "type": "string",
+        "enum": [
+          "good",
+          "again"
+        ]
+      },
+      "previous_level": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "level": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "due_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "completed_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "card": {
+        "$ref": "#/components/schemas/ReviewCard"
+      }
+    },
+    "required": [
+      "id",
+      "card_id",
+      "feedback",
+      "previous_level",
+      "level",
+      "due_at",
+      "completed_at",
+      "card"
+    ]
+  },
+  "ReviewReport": {
+    "type": "object",
+    "properties": {
+      "subject": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ReviewCard"
+        }
+      },
+      "total": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "due_count": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "settings": {
+        "$ref": "#/components/schemas/ReviewSettings"
+      },
+      "server_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "timezone": {
+        "type": "string"
+      },
+      "page": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "page_size": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "required": [
+      "subject",
+      "items",
+      "total",
+      "due_count",
+      "settings",
+      "server_time",
+      "timezone",
+      "page",
+      "page_size"
+    ]
+  },
+  "PublishedQuestion": {
+    "type": "object",
+    "properties": {
+      "position": {
+        "type": "integer"
+      },
+      "assignment_id": {
+        "type": "integer"
+      },
+      "score": {
+        "type": "integer"
+      },
+      "type": {
+        "type": "string"
+      },
+      "stem": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "knowledge_point_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "answer": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "explanation": {
+        "type": "string"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/Citation"
+            }
+          ],
+          "type": "object",
+          "properties": {
+            "chunk_id": {
+              "type": "integer"
+            },
+            "available": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "position",
+      "assignment_id",
+      "score",
+      "type",
+      "stem",
+      "options",
+      "knowledge_point_ids"
+    ]
+  },
+  "PublishedPaper": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "subject": {
+        "type": "string",
+        "enum": [
+          "chinese",
+          "math",
+          "english",
+          "physics",
+          "chemistry",
+          "biology",
+          "politics",
+          "history",
+          "geography"
+        ]
+      },
+      "title": {
+        "type": "string"
+      },
+      "total_score": {
+        "type": "integer"
+      },
+      "question_count": {
+        "type": "integer"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "questions": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PublishedQuestion"
+        }
+      }
+    },
+    "required": [
+      "id",
+      "subject",
+      "title",
+      "total_score",
+      "question_count",
+      "created_at"
+    ]
+  },
+  "PaperAttemptInput": {
+    "type": "object",
+    "properties": {
+      "answers": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 50,
+        "items": {
+          "type": "object",
+          "properties": {
+            "assignment_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "answer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "assignment_id",
+            "answer"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "answers"
+    ],
+    "additionalProperties": false
+  },
+  "PaperAttempt": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "paper_id": {
+        "type": "integer"
+      },
+      "student_id": {
+        "type": "integer"
+      },
+      "student_name": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "latest": {
+        "type": "boolean"
+      },
+      "reviewed_count": {
+        "type": "integer"
+      },
+      "reviewed_score": {
+        "type": "integer"
+      },
+      "final_score": {
+        "type": "integer",
+        "nullable": true
+      },
+      "total_score": {
+        "type": "integer"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SubmissionView"
+        }
+      }
+    },
+    "required": [
+      "id",
+      "paper_id",
+      "student_id",
+      "student_name",
+      "created_at",
+      "latest",
+      "reviewed_count",
+      "reviewed_score",
+      "final_score",
+      "total_score",
+      "items"
+    ]
+  },
+  "PublishedPage": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PublishedPaper"
+        }
+      },
+      "page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "items",
+      "page",
+      "page_size"
+    ]
+  },
+  "PaperAttemptPage": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PaperAttempt"
+        }
+      },
+      "page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "items",
+      "page",
+      "page_size"
+    ]
   }
 }

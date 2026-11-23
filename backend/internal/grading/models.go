@@ -10,12 +10,15 @@ import (
 	"time"
 )
 
+var ErrPaperManaged = errors.New("whole paper required")
 var ErrNotFound = errors.New("resource not found")
 var ErrConflict = errors.New("idempotency conflict")
 var keyPattern = regexp.MustCompile(`^[A-Za-z0-9-]{1,64}$`)
 var taskPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 type Assignment struct {
+	PaperID        int64     `json:"paper_id,omitempty"`
+	QuestionNumber int       `json:"question_number,omitempty"`
 	ID             int64     `json:"id"`
 	ClassID        int64     `json:"-"`
 	Title          string    `json:"title"`
@@ -57,7 +60,7 @@ func (a *AssignmentInput) Validate() error {
 
 func ValidSubject(subject string) bool {
 	switch subject {
-	case "chinese", "math", "english", "science", "morality":
+	case "chinese", "math", "english", "physics", "chemistry", "biology", "politics", "history", "geography":
 		return true
 	}
 	return false
@@ -79,6 +82,7 @@ type Result struct {
 	Feedback string `json:"feedback"`
 }
 type Review struct {
+	ErrorTags  []string  `json:"error_tags"`
 	Score      int       `json:"score"`
 	MaxScore   int       `json:"max_score"`
 	Correct    bool      `json:"correct"`
@@ -114,8 +118,9 @@ type Work struct {
 	Question, Answer, Expected, Subject string
 }
 type Usage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
+	Reported         bool `json:"-"`
+	PromptTokens     int  `json:"prompt_tokens"`
+	CompletionTokens int  `json:"completion_tokens"`
 }
 type GradeError struct {
 	Code  string

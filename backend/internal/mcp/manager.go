@@ -37,6 +37,9 @@ type Input struct {
 	AuthToken string `json:"auth_token"`
 }
 type Manager struct {
+	Learning                                  LearningProvider
+	nativeMu                                  sync.Mutex
+	nativeLimits                              map[int64]nativeWindow
 	DB                                        *sql.DB
 	key                                       []byte
 	DefaultToken                              string
@@ -121,6 +124,9 @@ func (m *Manager) Save(ctx context.Context, class, id int64, in Input) (Server, 
 		if e != nil {
 			return s, e
 		}
+	}
+	if s.BaseURL == LearningURL {
+		return s, invalid("本地学习服务无需修改地址或令牌")
 	}
 	in.Name = strings.TrimSpace(in.Name)
 	if !serverName.MatchString(in.Name) {
@@ -257,32 +263,40 @@ func (m *Manager) Connect(ctx context.Context, class, id int64) (Server, error) 
 		}
 		return s, &apiError{502, e.Error()}
 	}
-	if !m.allowed[s.BaseURL] {
-		return failed(errors.New("服务器地址已移出部署白名单"))
-	}
-	token, e := decrypt(m.key, s.cipher)
-	if e != nil {
-		return failed(e)
-	}
-	var init struct {
-		Version      string                     `json:"protocolVersion"`
-		Capabilities map[string]json.RawMessage `json:"capabilities"`
-	}
-	if e = rpc(ctx, s.BaseURL, token, "initialize", map[string]any{"protocolVersion": Protocol, "capabilities": map[string]any{}, "clientInfo": map[string]string{"name": "CampusClaw", "version": "0.4.0"}}, &init); e != nil {
-		return failed(e)
-	}
-	if init.Version != Protocol || init.Capabilities["tools"] == nil {
-		return failed(errors.New("MCP版本或工具能力协商失败"))
-	}
-	if e = rpc(ctx, s.BaseURL, token, "notifications/initialized", map[string]any{}, nil); e != nil {
-		return failed(e)
-	}
 	var discovery struct {
 		Tools      []Tool `json:"tools"`
 		NextCursor string `json:"nextCursor"`
 	}
-	if e = rpc(ctx, s.BaseURL, token, "tools/list", map[string]any{}, &discovery); e != nil {
-		return failed(e)
+	if s.BaseURL == LearningURL {
+		if m.Learning == nil {
+			return failed(errors.New("学习服务不可用"))
+		}
+		discovery.Tools = m.Learning.LearningTools()
+	} else {
+		if !m.allowed[s.BaseURL] {
+			return failed(errors.New("服务器地址已移出部署白名单"))
+		}
+		token, e := decrypt(m.key, s.cipher)
+		if e != nil {
+			return failed(e)
+		}
+		var init struct {
+			Version      string                     `json:"protocolVersion"`
+			Capabilities map[string]json.RawMessage `json:"capabilities"`
+		}
+		if e = rpc(ctx, s.BaseURL, token, "initialize", map[string]any{"protocolVersion": Protocol, "capabilities": map[string]any{}, "clientInfo": map[string]string{"name": "CampusClaw", "version": "0.4.0"}}, &init); e != nil {
+			return failed(e)
+		}
+		if init.Version != Protocol || init.Capabilities["tools"] == nil {
+			return failed(errors.New("MCP版本或工具能力协商失败"))
+		}
+		if e = rpc(ctx, s.BaseURL, token, "notifications/initialized", map[string]any{}, nil); e != nil {
+			return failed(e)
+		}
+		if e = rpc(ctx, s.BaseURL, token, "tools/list", map[string]any{}, &discovery); e != nil {
+			return failed(e)
+		}
+
 	}
 	if len(discovery.Tools) > 64 || discovery.NextCursor != "" {
 		return failed(errors.New("仅接受单页最多64个工具"))

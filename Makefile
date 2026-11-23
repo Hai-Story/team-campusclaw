@@ -5,8 +5,8 @@ dev:
 	docker compose --profile test up --build -d
 
 check-go:
-	docker run --rm -v "$(CURDIR)/backend:/src" -v campusclaw-team-gomod:/go/pkg/mod -v campusclaw-team-gocache:/root/.cache/go-build -w /src golang:1.23-alpine sh -c 'go vet ./... && go test ./... && go build -o /tmp/api ./cmd/server'
-	docker run --rm -v "$(CURDIR)/mcp-server:/src" -w /src golang:1.23-alpine sh -c 'go vet ./... && go test ./...'
+	docker run --rm -e GOMAXPROCS=2 -v "$(CURDIR)/backend:/src" -v campusclaw-team-gomod:/go/pkg/mod -v campusclaw-team-gocache:/root/.cache/go-build -w /src golang:1.27.4-alpine sh -c 'go vet ./... && go test ./... && go build -o /tmp/api ./cmd/server'
+	docker run --rm -e GOMAXPROCS=2 -v "$(CURDIR)/mcp-server:/src" -v campusclaw-team-gomod:/go/pkg/mod -v campusclaw-team-gocache:/root/.cache/go-build -w /src golang:1.27.4-alpine sh -c 'go vet ./... && go test ./...'
 
 check-frontend:
 	npm --prefix frontend run build

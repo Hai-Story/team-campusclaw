@@ -19,14 +19,29 @@ const server=http.createServer(async(req,res)=>{
  res.on('close',()=>{if(!res.writableEnded&&epoch===activeEpoch)cancelled++;release?.()})
  calls++
  const task=req.headers['x-task-id']||'teaching',n=(counts.get(task)||0)+1;counts.set(task,n)
+ if(String(task).startsWith('diagnosis-')&&applied.hold_diagnosis)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
  if(String(task).startsWith('explain-')&&applied.hold_explanation)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
+ if(String(task).startsWith('bank-')&&applied.hold_bank)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
+ if(String(task).startsWith('graph-')&&applied.hold_graph)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
+ if(String(task).startsWith('walk-')&&applied.hold_walk)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
+ if(String(task).startsWith('lesson-')&&applied.hold_lesson)await new Promise(resolve=>{release=()=>{waiters.delete(release);resolve()};waiters.add(release)})
  await new Promise(resolve=>setTimeout(resolve,applied.delay_ms))
  if(res.destroyed)return
  const status=applied.statuses[Math.min(n-1,applied.statuses.length-1)]||200
  if(status!==200){res.writeHead(status);res.end('{"error":"controlled fixture error"}');return}
+ if(body.tools?.length&&applied.tool_request){
+  const wanted=body.tools.find(t=>t.function?.name.endsWith('_'+applied.tool_request)),used=body.messages?.some(m=>m.role==='tool')
+  if(wanted&&(!used||applied.tool_repeat)){
+   const tool_calls=Array.from({length:applied.tool_many??1},(_,i)=>({id:'call_fixture_'+n+'_'+i,type:'function',function:{name:wanted.function.name,arguments:JSON.stringify(applied.tool_args??{subject:'math'})}}))
+   res.end(JSON.stringify({choices:[{message:{role:'assistant',content:null,tool_calls}}],usage:{prompt_tokens:20,completion_tokens:12,total_tokens:32}}));return
+  }
+  res.end(JSON.stringify({choices:[{message:{role:'assistant',content:'已读取授权学习数据。'}}],usage:{prompt_tokens:20,completion_tokens:12,total_tokens:32}}));return
+ }
  let input={};try{input=JSON.parse(body.messages?.find(x=>x.role==='user')?.content||'{}')}catch{}
- const content=String(task).startsWith('explain-')?JSON.stringify(applied.explanation_response??{explanation:'请回想这类题目的基本定义，检查作答中采用的概念是否一致，再试着用定义验证自己的判断。'}):task==='teaching'?'请先检查题目中的已知条件，再核对每一步推导。':JSON.stringify({correct:applied.correct??(String(input.answer).trim()===String(input.expected_answer).trim()),feedback:applied.feedbacks?.[Math.min(n-1,applied.feedbacks.length-1)]??(applied.correct===false?'本次结果与参考不一致，请核对运算和符号。':'本次结果与参考一致。')})
- if(body.stream){res.setHeader('Content-Type','text/event-stream');res.write('data: '+JSON.stringify({choices:[{delta:{content}}]})+'\n\n');res.end('data: [DONE]\n\n');return}
+ const lessonResponse={goals:['理解分数的意义'],key_points:['整体与部分的关系'],difficulties:['解释单位整体的变化'],activities:[{title:'观察与讨论',minutes:input.total_minutes,steps:['阅读指定讲义并比较实例','请学生说明自己的理由']}],resources:['指定本班讲义'],citation_indices:[1]}
+ const bankQuestions=Array.from({length:input.question_count??1},(_,i)=>{const type=input.question_types?.[i%input.question_types.length]??'single_choice';const choice=['single_choice','multiple_choice'].includes(type);return {type,stem:String(task)+' · 练习'+(i+1),options:choice?['核对概念','比较单位','忽略条件']:[],answer:type==='multiple_choice'?['A','B']:type==='single_choice'?['A']:type==='true_false'?['true']:['先核对概念，再说明判断依据。'],explanation:'根据指定资料检查概念与步骤。',knowledge_point_ids:[input.knowledge_points?.[0]?.id],difficulty:input.difficulty??'easy',citation_indices:[1]}})
+ const content=String(task).startsWith('diagnosis-')?(typeof applied.diagnosis_raw==='string'?applied.diagnosis_raw:JSON.stringify(applied.diagnosis_response??{explanation:'从已有终评看，可以先回顾相关概念，再结合近期练习检查易错环节。'})):String(task).startsWith('bank-')?(typeof applied.bank_raw==='string'?applied.bank_raw:JSON.stringify(applied.bank_response??{questions:bankQuestions})):String(task).startsWith('graph-')?(typeof applied.graph_raw==='string'?applied.graph_raw:JSON.stringify(applied.graph_response??{nodes:[{name:'分数的意义',chapter:'分数',description:'理解整体与部分'}],edges:[],citation_indices:[1]})):String(task).startsWith('walk-')?(typeof applied.walk_raw==='string'?applied.walk_raw:JSON.stringify(applied.walk_response??{response:'请先说明你选择这个方法的理由，并检查条件是否全部用上。',summary:'已经梳理当前阶段的思路，仍需补充理由。',improvements:['解释每步依据','完成后回看题目条件']})):String(task).startsWith('lesson-')?(typeof applied.lesson_raw==='string'?applied.lesson_raw:JSON.stringify(applied.lesson_response??lessonResponse)):String(task).startsWith('explain-')?JSON.stringify(applied.explanation_response??{explanation:'请回想这类题目的基本定义，检查作答中采用的概念是否一致，再试着用定义验证自己的判断。',citation_indices:[1]}):task==='teaching'?'请先检查题目中的已知条件，再核对每一步推导。':JSON.stringify({correct:applied.correct??(String(input.answer).trim()===String(input.expected_answer).trim()),feedback:applied.feedbacks?.[Math.min(n-1,applied.feedbacks.length-1)]??(applied.correct===false?'本次结果与参考不一致，请核对运算和符号。':'本次结果与参考一致。')})
+ if(body.stream){res.setHeader('Content-Type','text/event-stream');res.write('data: '+JSON.stringify({choices:[{delta:{content}}]})+'\n\n');if(!applied.omit_stream_usage)res.write('data: '+JSON.stringify({choices:[],usage:{prompt_tokens:20,completion_tokens:12,total_tokens:32}})+'\n\n');res.end('data: [DONE]\n\n');return}
  res.end(JSON.stringify({choices:[{message:{role:'assistant',content}}],usage:{prompt_tokens:20,completion_tokens:12,total_tokens:32}}))
 })
 server.listen(8089,'0.0.0.0')

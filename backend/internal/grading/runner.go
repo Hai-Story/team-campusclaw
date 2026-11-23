@@ -1,6 +1,7 @@
 package grading
 
 import (
+	"campusclaw/backend/internal/auditlog"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
@@ -147,6 +148,16 @@ func RunWorker(ctx context.Context, store *Store, c Settings) {
 						break
 					}
 					start := time.Now()
+					trace, auditErr := (&auditlog.Store{DB: store.DB}).Start(ctx, fmt.Sprintf("grade:%s:%d", work.TaskID, work.Attempts), auditlog.Event{RequestID: work.TaskID, ActorID: work.ActorID, ClassID: work.ClassID, Action: "grading.verdict", SkillID: VerdictVersion, Object: "submission:" + fmt.Sprint(work.SubmissionID)})
+					if auditErr != nil {
+						if store.ReleaseUnstarted(ctx, *work) != nil {
+							event("audit", "release_failed", map[string]any{"task_id": work.TaskID})
+						}
+						delivery.Nack(false, true)
+						event("audit", "reserve_failed", map[string]any{"task_id": work.TaskID})
+						wait(ctx, time.Second)
+						break
+					}
 					event("grading", "started", map[string]any{"task_id": work.TaskID, "actor_id": work.ActorID, "skill_id": VerdictVersion, "status": "running", "attempts": work.Attempts})
 					call, cancel := context.WithTimeout(ctx, c.Timeout)
 					feedback, usage, failure := Feedback(call, c, *work)
@@ -171,6 +182,12 @@ func RunWorker(ctx context.Context, store *Store, c Settings) {
 						break
 					}
 					event("grading", "completed", map[string]any{"task_id": work.TaskID, "actor_id": work.ActorID, "skill_id": VerdictVersion, "status": status, "attempts": work.Attempts, "duration_ms": time.Since(start).Milliseconds(), "usage": usage, "model": c.Model})
+					auditCtx, auditCancel := context.WithTimeout(context.WithoutCancel(ctx), 3*time.Second)
+					auditErr = trace.Finish(auditCtx, "grading.verdict", "submission:"+fmt.Sprint(work.SubmissionID), status, 0, time.Since(start).Milliseconds(), map[string]any{"usage": map[string]any{"prompt_tokens": usage.PromptTokens, "completion_tokens": usage.CompletionTokens, "total_tokens": usage.PromptTokens + usage.CompletionTokens, "reported": usage.Reported, "complete": usage.Reported}, "model": c.Model, "attempt": work.Attempts}, VerdictVersion)
+					auditCancel()
+					if auditErr != nil {
+						event("audit", "completion_failed", map[string]any{"task_id": work.TaskID})
+					}
 					// This ACK follows the result/state transaction, including durable retry/dead events.
 					delivery.Ack(false)
 					break

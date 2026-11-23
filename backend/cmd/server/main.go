@@ -13,14 +13,17 @@ import (
 	"time"
 
 	"campusclaw/backend/internal/apidocs"
+	"campusclaw/backend/internal/auditlog"
 	"campusclaw/backend/internal/auth"
 	"campusclaw/backend/internal/config"
+	"campusclaw/backend/internal/curriculum"
 	"campusclaw/backend/internal/db"
 	"campusclaw/backend/internal/grading"
 	"campusclaw/backend/internal/materials"
 	"campusclaw/backend/internal/mcp"
 	"campusclaw/backend/internal/retrieval"
 	"campusclaw/backend/internal/runtimehttp"
+	"campusclaw/backend/internal/securityaudit"
 	"campusclaw/backend/internal/tutor"
 )
 
@@ -63,7 +66,13 @@ func main() {
 	if err := grading.Migrate(d); err != nil {
 		log.Fatal("作业迁移失败")
 	}
+	if err := curriculum.Migrate(d); err != nil {
+		log.Fatal("课程资源迁移失败")
+	}
 
+	if auditlog.Migrate(d) != nil {
+		log.Fatal("审计迁移失败")
+	}
 	authSvc := auth.NewService(d, cfg)
 	matSvc := materials.NewService(d, cfg)
 
@@ -103,7 +112,13 @@ func main() {
 	mux := http.NewServeMux()
 	apidocs.Mount(mux)
 	runtimehttp.Probes(mux, d, cfg.Version, cfg.QdrantURL, strings.Split(os.Getenv("MCP_ALLOWED_BASE_URLS"), ",")[0])
-	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}, Model: gradeSettings}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
+	securityaudit.Mount(mux, &securityaudit.Service{Store: &auditlog.Store{DB: d}}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
+	grading.Mount(mux, &grading.Service{Store: &grading.Store{DB: d}, Model: gradeSettings, Searcher: retrievalSvc.Searcher}, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
+	curriculumSvc := &curriculum.Service{Store: &curriculum.Store{DB: d}, Searcher: retrievalSvc.Searcher, Generator: &curriculum.ChatGenerator{BaseURL: cfg.ChatBaseURL, APIKey: cfg.ChatAPIKey, Model: cfg.ChatModel}, ModelName: cfg.ChatModel}
+	mcpSvc.Learning = curriculumSvc
+	mux.HandleFunc("GET /api/homework-notifications", dbGuard(authSvc.Middleware(curriculumSvc.ListHomeworkNotifications)))
+	mux.HandleFunc("PUT /api/homework-notifications/{id}/read", dbGuard(authSvc.Middleware(curriculumSvc.ReadHomeworkNotification)))
+	curriculum.Mount(mux, curriculumSvc, func(h http.HandlerFunc) http.HandlerFunc { return dbGuard(authSvc.Middleware(h)) })
 
 	mux.HandleFunc("POST /api/login", dbGuard(authSvc.Login))
 	mux.HandleFunc("POST /api/logout", dbGuard(authSvc.Logout))
@@ -143,6 +158,8 @@ func main() {
 	mux.HandleFunc("GET /api/conversations/{id}/messages/{message}/trace", dbGuard(authSvc.Middleware(auth.RequireStudent(tutorSvc.MessageTrace))))
 	mux.HandleFunc("POST /api/conversations/{id}/messages", dbGuard(authSvc.Middleware(auth.RequireStudent(tutorSvc.SendMessage))))
 
+	mux.HandleFunc("POST /api/mcp/learning-servers", dbGuard(authSvc.Middleware(auth.RequireTeacher(mcpSvc.EnableLearning))))
+	mux.HandleFunc("POST /api/learning-tools/mcp", dbGuard(authSvc.Middleware(mcpSvc.LearningRPC)))
 	mux.HandleFunc("GET /api/mcp/servers", dbGuard(authSvc.Middleware(auth.RequireTeacher(mcpSvc.ListServers))))
 	mux.HandleFunc("POST /api/mcp/servers", dbGuard(authSvc.Middleware(auth.RequireTeacher(mcpSvc.SaveServer))))
 	mux.HandleFunc("GET /api/mcp/servers/{id}", dbGuard(authSvc.Middleware(auth.RequireTeacher(mcpSvc.GetServer))))
@@ -155,7 +172,7 @@ func main() {
 	mux.HandleFunc("GET /api/mcp/tool-calls", dbGuard(authSvc.Middleware(auth.RequireTeacher(mcpSvc.Calls))))
 
 	log.Printf("CampusClaw api 监听 :%s", cfg.Port)
-	server := &http.Server{Addr: ":" + cfg.Port, Handler: runtimehttp.Middleware(mux), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
+	server := &http.Server{Addr: ":" + cfg.Port, Handler: runtimehttp.Middleware(mux, &auditlog.Store{DB: d}), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	go func() {

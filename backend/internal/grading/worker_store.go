@@ -208,3 +208,9 @@ func IsBusy(err error) (time.Duration, bool) {
 	}
 	return 0, false
 }
+
+// ReleaseUnstarted preserves the model-attempt budget when the audit reserve fails.
+func (s *Store) ReleaseUnstarted(ctx context.Context, w Work) error {
+	_, err := s.DB.ExecContext(ctx, `UPDATE grade_tasks SET status='pending',attempts=attempts-1,run_token=NULL,lease_until=NULL,available_at=DATE_ADD(UTC_TIMESTAMP(6),INTERVAL 1 SECOND) WHERE task_id=? AND status='running' AND run_token=?`, w.TaskID, w.RunToken)
+	return err
+}

@@ -1,0 +1,4 @@
+services:
+  web:
+    volumes:
+      - ./deploy/nginx.maintenance.conf.template:/etc/nginx/templates/default.conf.template:ro
